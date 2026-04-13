@@ -27,7 +27,7 @@ def main():
     # Create application
     app = QApplication(sys.argv)
     app.setApplicationName("Cygnus")
-    app.setApplicationDisplayName("Cygnus — Study Software")
+    app.setApplicationDisplayName("Cygnus")
 
     # Set AppUserModelID so taskbar icon updates correctly on Windows
     if os.name == "nt":

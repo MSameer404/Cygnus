@@ -109,7 +109,7 @@ class SettingsPage(QWidget):
 
         # ========== About ==========
         layout.addWidget(self._section_label("About"))
-        about = QLabel("Cygnus v0.1.0 — A Yeolpumta-inspired study timer.\nBuilt with Python, PyQt6, and SQLModel.")
+        about = QLabel("Cygnus (Beta v1) — A Yeolpumta-inspired study timer.\nBuilt with Python, PyQt6, and SQLModel.")
         about.setProperty("class", "muted")
         layout.addWidget(about)
 
@@ -271,14 +271,22 @@ class SettingsPage(QWidget):
                 self._refresh_dday()
 
     def _delete_dday(self, event: DDayEvent):
-        dday_manager.delete_event(event.id)
-        self._refresh_dday()
+        reply = QMessageBox.warning(
+            self,
+            "Delete Event",
+            f"Are you sure you want to delete the event '{event.title}'?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if reply == QMessageBox.StandardButton.Yes:
+            dday_manager.delete_event(event.id)
+            self._refresh_dday()
 
     # ---------- Data Management ----------
 
     def _export_csv(self):
         path, _ = QFileDialog.getSaveFileName(
-            self, "Export Sessions", "cygnus_sessions.csv", "CSV Files (*.csv)"
+            self, "Export Sessions", "pytp_sessions.csv", "CSV Files (*.csv)"
         )
         if not path:
             return

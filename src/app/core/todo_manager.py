@@ -103,6 +103,50 @@ def get_completion_rate(target_date: date) -> float:
         return (completed / total) * 100
 
 
+def list_todos_for_range(
+    start_date: date,
+    end_date: date,
+) -> list[TodoItem]:
+    """List all to-do items within a date range (inclusive)."""
+    with get_session() as session:
+        stmt = (
+            select(TodoItem)
+            .where(
+                and_(
+                    TodoItem.target_date >= start_date,
+                    TodoItem.target_date <= end_date,
+                )
+            )
+            .order_by(TodoItem.target_date, TodoItem.is_completed, TodoItem.created_at.desc())
+        )
+        return list(session.exec(stmt).all())
+
+
+def get_completion_rate_range(start_date: date, end_date: date) -> float:
+    """Return completion percentage for a date range (0.0 to 100.0)."""
+    with get_session() as session:
+        total = session.exec(
+            select(func.count(TodoItem.id)).where(
+                and_(
+                    TodoItem.target_date >= start_date,
+                    TodoItem.target_date <= end_date,
+                )
+            )
+        ).one()
+        if total == 0:
+            return 0.0
+        completed = session.exec(
+            select(func.count(TodoItem.id)).where(
+                and_(
+                    TodoItem.target_date >= start_date,
+                    TodoItem.target_date <= end_date,
+                    TodoItem.is_completed == True,
+                )
+            )
+        ).one()
+        return (completed / total) * 100
+
+
 def get_pending_count(target_date: date | None = None) -> int:
     """Return count of pending (incomplete) todos."""
     with get_session() as session:

@@ -1,6 +1,9 @@
 # src/app/ui/dashboard_page.py
 """Dashboard / home page — today's summary, quick start, timeline, sessions."""
 
+from pathlib import Path
+import json
+import random
 from datetime import date
 
 from PyQt6.QtCore import Qt
@@ -8,6 +11,7 @@ from PyQt6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
+    QMessageBox,
     QPushButton,
     QScrollArea,
     QVBoxLayout,
@@ -17,7 +21,6 @@ from PyQt6.QtWidgets import (
 from app.core import dday_manager, session_manager
 from app.core.timer_engine import TimerEngine
 from app.ui.widgets.dday_card import DDayCard
-from app.ui.widgets.session_card import SessionCard
 from app.ui.widgets.timeline_bar import TimelineBar
 
 
@@ -104,22 +107,33 @@ class DashboardPage(QWidget):
         self._dday_section.addLayout(self._dday_container)
         self._main_layout.addLayout(self._dday_section)
 
-        # ---------- Today's Sessions ----------
-        sessions_header = QHBoxLayout()
-        sessions_title = QLabel("Today's Sessions")
-        sessions_title.setProperty("class", "subheading")
-        sessions_header.addWidget(sessions_title)
-        sessions_header.addStretch()
+        # ---------- Motivation ----------
+        motivation_header = QHBoxLayout()
+        motivation_title = QLabel("Daily Motivation")
+        motivation_title.setProperty("class", "subheading")
+        motivation_header.addWidget(motivation_title)
+        motivation_header.addStretch()
+        self._main_layout.addLayout(motivation_header)
 
-        self._session_count_label = QLabel("0 sessions")
-        self._session_count_label.setProperty("class", "muted")
-        sessions_header.addWidget(self._session_count_label)
-        self._main_layout.addLayout(sessions_header)
+        motivation_card = QFrame()
+        motivation_card.setProperty("class", "card")
+        self._motivation_layout = QVBoxLayout(motivation_card)
+        self._motivation_layout.setContentsMargins(24, 24, 24, 24)
+        
+        self._quote_label = QLabel("Loading quote...")
+        self._quote_label.setWordWrap(True)
+        self._quote_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._quote_label.setStyleSheet("font-size: 18px; font-style: italic; color: #E0E0E0;")
+        
+        self._author_label = QLabel("")
+        self._author_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        self._author_label.setProperty("class", "caption")
+        self._author_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #A0A0A0; margin-top: 10px;")
 
-        self._sessions_container = QVBoxLayout()
-        self._sessions_container.setSpacing(8)
-        self._sessions_container.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self._main_layout.addLayout(self._sessions_container)
+        self._motivation_layout.addWidget(self._quote_label)
+        self._motivation_layout.addWidget(self._author_label)
+
+        self._main_layout.addWidget(motivation_card)
 
         self._main_layout.addStretch()
 
@@ -162,9 +176,6 @@ class DashboardPage(QWidget):
         if count_label:
             count_label.setText(str(len(sessions)))
 
-        # Update session count
-        self._session_count_label.setText(f"{len(sessions)} sessions")
-
         # Refresh timeline
         self._timeline.set_date(today)
 
@@ -180,23 +191,25 @@ class DashboardPage(QWidget):
             empty.setProperty("class", "muted")
             self._dday_container.addWidget(empty)
 
-        # Refresh session list
-        self._clear_layout(self._sessions_container)
-        if sessions:
-            for s in reversed(sessions):  # Newest first
-                card = SessionCard(s)
-                card.deleted.connect(self._on_session_deleted)
-                self._sessions_container.addWidget(card)
-        else:
-            empty = QLabel("No sessions yet today. Start studying!")
-            empty.setProperty("class", "muted")
-            empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            empty.setStyleSheet("padding: 20px;")
-            self._sessions_container.addWidget(empty)
+        # Show Daily Motivation quote
+        self._refresh_quote()
 
-    def _on_session_deleted(self, session_id: int):
-        session_manager.delete_session(session_id)
-        self.refresh()
+    def _refresh_quote(self):
+        try:
+            quotes_path = Path(__file__).parent.parent / "data" / "quotes.json"
+            if quotes_path.exists():
+                with open(quotes_path, "r", encoding="utf-8") as f:
+                    quotes = json.load(f)
+                if quotes:
+                    q = random.choice(quotes)
+                    self._quote_label.setText(f'"{q["text"]}"')
+                    self._author_label.setText(f"— {q['author']}")
+                    return
+        except Exception as e:
+            print(f"Error loading quotes: {e}")
+            
+        self._quote_label.setText('"Success is the sum of small efforts, repeated day in and day out."')
+        self._author_label.setText("— Robert Collier")
 
     def _clear_layout(self, layout):
         while layout.count():

@@ -11,6 +11,8 @@ from PyQt6.QtWidgets import (
 )
 
 from app.ui.widgets.sidebar import Sidebar
+from app.ui.profile_dialog import ProfileDialog
+from app.ui.contact_dialog import ContactDialog
 
 
 class MainWindow(QMainWindow):
@@ -18,7 +20,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Cygnus — Study Software")
+        self.setWindowTitle("Cygnus")
         self.setMinimumSize(1000, 700)
         self.resize(1100, 750)
 
@@ -42,6 +44,8 @@ class MainWindow(QMainWindow):
 
         # Connect sidebar navigation
         self.sidebar.page_changed.connect(self._switch_page)
+        self.sidebar.profile_clicked.connect(self._open_profile)
+        self.sidebar.contact_clicked.connect(self._open_contact)
 
     def add_page(self, page: QWidget):
         """Add a page to the stack (order must match Sidebar.PAGES)."""
@@ -56,3 +60,14 @@ class MainWindow(QMainWindow):
         qss_path = Path(__file__).parent.parent / "assets" / "theme.qss"
         if qss_path.exists():
             self.setStyleSheet(qss_path.read_text(encoding="utf-8"))
+
+    def _open_profile(self):
+        """Open the user profile dialog."""
+        dialog = ProfileDialog(self)
+        dialog.exec()
+
+    def _open_contact(self):
+        """Open the contact us dialog."""
+        dialog = ContactDialog(self)
+        dialog.exec()
+

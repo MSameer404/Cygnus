@@ -5,9 +5,11 @@ from datetime import date
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
+    QDialog,
     QFrame,
     QHBoxLayout,
     QLabel,
+    QMessageBox,
     QPushButton,
     QScrollArea,
     QVBoxLayout,
@@ -103,6 +105,14 @@ class TimerPage(QWidget):
         sessions_title.setProperty("class", "subheading")
         sessions_header.addWidget(sessions_title)
         sessions_header.addStretch()
+
+        add_session_btn = QPushButton("＋ Add Session")
+        add_session_btn.setProperty("class", "secondary")
+        add_session_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        add_session_btn.setToolTip("Manually record a past study session")
+        add_session_btn.clicked.connect(self._open_manual_session)
+        sessions_header.addWidget(add_session_btn)
+
         layout.addLayout(sessions_header)
         layout.addSpacing(8)
 
@@ -248,8 +258,22 @@ class TimerPage(QWidget):
         return card
 
     def _delete_session(self, session_id: int):
-        session_manager.delete_session(session_id)
-        self._refresh_sessions()
+        reply = QMessageBox.warning(
+            self,
+            "Delete Session",
+            "Are you sure you want to delete this study session?\n\nThis action cannot be undone.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if reply == QMessageBox.StandardButton.Yes:
+            session_manager.delete_session(session_id)
+            self._refresh_sessions()
+
+    def _open_manual_session(self):
+        from app.ui.widgets.manual_session_dialog import ManualSessionDialog
+        dialog = ManualSessionDialog(self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            self._refresh_sessions()
 
     def showEvent(self, event):
         """Refresh sessions when page becomes visible."""

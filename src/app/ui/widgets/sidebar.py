@@ -11,6 +11,8 @@ class Sidebar(QWidget):
     """Vertical navigation sidebar with icon buttons."""
 
     page_changed = pyqtSignal(int)
+    profile_clicked = pyqtSignal()
+    contact_clicked = pyqtSignal()
 
     # Unicode icons for each page
     PAGES = [
@@ -34,11 +36,12 @@ class Sidebar(QWidget):
         layout.setContentsMargins(8, 16, 8, 16)
         layout.setSpacing(4)
 
-        # App logo / brand
+        # App logo / brand — clickable, opens profile
         brand = QPushButton()
         brand.setProperty("class", "sidebar-btn")
-        brand.setToolTip("Cygnus Study")
-        brand.setEnabled(False)
+        brand.setToolTip("View Profile")
+        brand.setCursor(Qt.CursorShape.PointingHandCursor)
+        brand.clicked.connect(self.profile_clicked.emit)
         
         assets_dir = Path(__file__).parent.parent.parent / "assets"
         icon_ico = assets_dir / "logo.ico"
@@ -47,14 +50,14 @@ class Sidebar(QWidget):
         if icon_ico.exists():
             brand.setIcon(QIcon(str(icon_ico)))
             brand.setIconSize(QSize(28, 28))
-            brand.setStyleSheet("opacity: 0.5; border: none; background: transparent;")
+            brand.setStyleSheet("border: none; background: transparent;")
         elif icon_png.exists():
             brand.setIcon(QIcon(str(icon_png)))
             brand.setIconSize(QSize(28, 28))
-            brand.setStyleSheet("opacity: 0.5; border: none; background: transparent;")
+            brand.setStyleSheet("border: none; background: transparent;")
         else:
             brand.setText("📖")
-            brand.setStyleSheet("font-size: 22px; opacity: 0.5; border: none; background: transparent;")
+            brand.setStyleSheet("font-size: 22px; border: none; background: transparent;")
         layout.addWidget(brand, alignment=Qt.AlignmentFlag.AlignCenter)
 
         layout.addSpacing(16)
@@ -73,6 +76,14 @@ class Sidebar(QWidget):
         layout.addItem(
             QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         )
+
+        # Contact Us button
+        contact_btn = QPushButton("📧")
+        contact_btn.setProperty("class", "sidebar-btn")
+        contact_btn.setToolTip("Contact Us")
+        contact_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        contact_btn.clicked.connect(self.contact_clicked.emit)
+        layout.addWidget(contact_btn, alignment=Qt.AlignmentFlag.AlignCenter)
 
         self._update_active()
 

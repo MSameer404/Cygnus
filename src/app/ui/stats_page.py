@@ -1,14 +1,16 @@
-# src/app/ui/stats_page.py
 """Statistics & analytics page with charts and summary cards."""
 
 import calendar
+import traceback
 from datetime import date, timedelta
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
+    QFileDialog,
     QFrame,
     QHBoxLayout,
     QLabel,
+    QMessageBox,
     QPushButton,
     QScrollArea,
     QTabBar,
@@ -21,6 +23,7 @@ from app.core.timer_engine import TimerEngine
 from app.ui.widgets.bar_chart import BarChart
 from app.ui.widgets.heatmap import HeatmapWidget
 from app.ui.widgets.pie_chart import PieChart
+from app.ui.widgets.snapshot_widget import SnapshotWidget
 
 
 class StatsPage(QWidget):
@@ -68,6 +71,13 @@ class StatsPage(QWidget):
         self._prev_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self._prev_btn.clicked.connect(self._go_prev)
         nav_row.addWidget(self._prev_btn)
+
+        self._download_btn = QPushButton("Report")
+        self._download_btn.setProperty("class", "secondary")
+        self._download_btn.setFixedHeight(36)
+        self._download_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._download_btn.clicked.connect(self._download_snapshot)
+        nav_row.addWidget(self._download_btn)
 
         self._date_label = QLabel()
         self._date_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -224,6 +234,7 @@ class StatsPage(QWidget):
         d = self._current_date
 
         if tab == 0:  # Day
+            self._download_btn.show()
             self._date_label.setText(d.strftime("%A, %B %d, %Y"))
             start, end = d, d
             bar_values = [stats_engine.get_daily_total(d)]
@@ -231,6 +242,7 @@ class StatsPage(QWidget):
             self._bar_title.setText("Today's Total")
 
         elif tab == 1:  # Week
+            self._download_btn.hide()
             start = stats_engine.get_week_start(d)
             end = start + timedelta(days=6)
             self._date_label.setText(f"{start.strftime('%b %d')} – {end.strftime('%b %d, %Y')}")
@@ -239,6 +251,7 @@ class StatsPage(QWidget):
             self._bar_title.setText("Daily Breakdown")
 
         elif tab == 2:  # Month
+            self._download_btn.hide()
             start = date(d.year, d.month, 1)
             num_days = calendar.monthrange(d.year, d.month)[1]
             end = date(d.year, d.month, num_days)
@@ -248,6 +261,7 @@ class StatsPage(QWidget):
             self._bar_title.setText("Daily Breakdown")
 
         else:  # Year
+            self._download_btn.hide()
             start = date(d.year, 1, 1)
             end = date(d.year, 12, 31)
             self._date_label.setText(str(d.year))
@@ -288,3 +302,32 @@ class StatsPage(QWidget):
     def showEvent(self, event):
         super().showEvent(event)
         self._refresh()
+
+    def _download_snapshot(self):
+        """Generate and save the image snapshot of the current day."""
+        if self._current_tab != 0:
+            return
+            
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Snapshot",
+            f"Cygnus_Snapshot_{self._current_date.strftime('%Y-%m-%d')}.png",
+            "Images (*.png)"
+        )
+        
+        if not file_path:
+            return
+            
+        try:
+            total_time = stats_engine.get_daily_total(self._current_date)
+            snapsht_widget = SnapshotWidget(self._current_date, total_time)
+            
+            # Get the image
+            image = snapsht_widget.generate_image()
+            
+            if image.save(file_path):
+                QMessageBox.information(self, "Success", f"Snapshot saved successfully to:\n{file_path}")
+            else:
+                QMessageBox.warning(self, "Error", "Failed to save the snapshot image.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"An error occurred while generating snapshot:\n{traceback.format_exc()}")
