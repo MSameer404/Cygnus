@@ -38,11 +38,20 @@ def main():
             pass
 
     # Load and set application icon (prioritize .ico for Windows)
-    assets_dir = Path(__file__).parent / "assets"
+    if getattr(sys, 'frozen', False):
+        # Running as PyInstaller bundle
+        # PyInstaller puts `main.py` at root `_MEIPASS`, but `assets` are at `app/assets`
+        assets_dir = Path(sys._MEIPASS) / "app" / "assets"
+    else:
+        # Running normally
+        assets_dir = Path(__file__).parent / "assets"
+
     icon_ico = assets_dir / "logo.ico"
     icon_png = assets_dir / "logo.png"
-    
+
     if icon_ico.exists():
+        app.setWindowIcon(QIcon(str(icon_ico)))
+        # Make sure main window also picks up this icon explicitly for some Windows systems
         app.setWindowIcon(QIcon(str(icon_ico)))
     elif icon_png.exists():
         app.setWindowIcon(QIcon(str(icon_png)))
