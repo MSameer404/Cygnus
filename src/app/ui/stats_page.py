@@ -19,6 +19,7 @@ from PyQt6.QtWidgets import (
 )
 
 from app.core import stats_engine
+from app.core.events import app_events
 from app.core.timer_engine import TimerEngine
 from app.ui.widgets.bar_chart import BarChart
 from app.ui.widgets.heatmap import HeatmapWidget
@@ -34,6 +35,12 @@ class StatsPage(QWidget):
         self._current_date = date.today()
         self._current_tab = 0  # 0=Day, 1=Week, 2=Month, 3=Year
         self._setup_ui()
+        app_events.data_reset.connect(self._on_data_reset)
+
+    def _on_data_reset(self):
+        """Refresh stats when all data is reset."""
+        self._current_date = date.today()
+        self._refresh()
 
     def _setup_ui(self):
         scroll = QScrollArea()

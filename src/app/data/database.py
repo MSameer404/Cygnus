@@ -2,6 +2,7 @@
 """Database engine, session management, and initialization."""
 
 import os
+import sys
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -14,9 +15,18 @@ from app.data.models import AppSetting, Subject
 _APPDATA = os.environ.get("APPDATA", os.path.expanduser("~"))
 DATA_DIR = Path(_APPDATA) / "Cygnus"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
-DB_PATH = DATA_DIR / "cygnus_data.db"
+
+if getattr(sys, 'frozen', False):
+    DB_PATH = DATA_DIR / "cygnus_data.db"
+else:
+    DB_PATH = DATA_DIR / "cygnusdev.db"
 
 _engine = create_engine(f"sqlite:///{DB_PATH}", echo=False)
+
+
+def _create_engine():
+    """Create a new engine instance."""
+    return create_engine(f"sqlite:///{DB_PATH}", echo=False)
 
 # ---------- Default data ----------
 
@@ -73,3 +83,18 @@ def get_session():
 def get_engine():
     """Return the SQLAlchemy engine (for advanced use)."""
     return _engine
+
+
+def close_engine() -> None:
+    """Dispose the engine to release database file locks."""
+    global _engine
+    if _engine:
+        _engine.dispose()
+        _engine = None
+
+
+def reinit_engine() -> None:
+    """Recreate the engine after database reset."""
+    global _engine
+    if _engine is None:
+        _engine = _create_engine()

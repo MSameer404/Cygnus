@@ -18,6 +18,7 @@ from PyQt6.QtWidgets import (
 
 from app.core.timer_engine import TimerEngine
 from app.core import session_manager, subject_manager
+from app.core.events import app_events
 from app.data.models import Subject
 from app.ui.widgets.subject_picker import SubjectPicker
 
@@ -32,6 +33,16 @@ class TimerPage(QWidget):
         self.timer_engine = TimerEngine(self)
         self._setup_ui()
         self._connect_signals()
+        app_events.data_reset.connect(self._on_data_reset)
+
+    def _on_data_reset(self):
+        """Reset timer state and refresh when all data is reset."""
+        # Stop timer if running
+        if self.timer_engine.state.value != 'idle':
+            self.timer_engine.reset()
+        self._current_subject = None
+        self.subject_picker.refresh()
+        self._refresh_sessions()
 
     def _setup_ui(self):
         layout = QVBoxLayout(self)

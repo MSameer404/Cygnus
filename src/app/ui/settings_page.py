@@ -315,7 +315,7 @@ class SettingsPage(QWidget):
         reply = QMessageBox.warning(
             self,
             "Reset All Data",
-            "⚠ This will permanently delete ALL sessions, todos, and events.\n\nAre you sure?",
+            "⚠ This will permanently delete ALL sessions, todos, events, profile data, and settings.\n\nAre you sure?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )
@@ -324,19 +324,23 @@ class SettingsPage(QWidget):
             reply2 = QMessageBox.critical(
                 self,
                 "Final Confirmation",
-                "This action CANNOT be undone. Proceed?",
+                "This action CANNOT be undone.\nProfile picture and all data will be lost.\n\nProceed?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No,
             )
             if reply2 == QMessageBox.StandardButton.Yes:
-                # Delete database and reinitialize
-                if DB_PATH.exists():
-                    os.remove(DB_PATH)
-                from app.data.database import init_db
-                init_db()
+                # Reset all data and notify other pages
+                from app.core.data_reset import reset_all_data
+                from app.core.events import app_events
+
+                reset_all_data()
                 self._refresh_subjects()
                 self._refresh_dday()
-                QMessageBox.information(self, "Reset Complete", "All data has been reset.")
+
+                # Notify all other pages to refresh
+                app_events.data_reset.emit()
+
+                QMessageBox.information(self, "Reset Complete", "All data has been reset. The app is now fresh.")
 
     def showEvent(self, event):
         super().showEvent(event)

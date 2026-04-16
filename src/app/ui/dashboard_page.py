@@ -19,6 +19,7 @@ from PyQt6.QtWidgets import (
 )
 
 from app.core import dday_manager, session_manager
+from app.core.events import app_events
 from app.core.timer_engine import TimerEngine
 from app.ui.widgets.dday_card import DDayCard
 from app.ui.widgets.timeline_bar import TimelineBar
@@ -33,6 +34,11 @@ class DashboardPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._setup_ui()
+        app_events.data_reset.connect(self._on_data_reset)
+
+    def _on_data_reset(self):
+        """Refresh dashboard when all data is reset."""
+        self.refresh()
 
     def _setup_ui(self):
         # Scrollable content

@@ -21,6 +21,7 @@ from PyQt6.QtWidgets import (
 )
 
 from app.core import subject_manager, todo_manager
+from app.core.events import app_events
 from app.data.models import TodoItem
 
 
@@ -32,6 +33,14 @@ class TodoPage(QWidget):
         self._current_date = date.today()
         self._current_tab = 0  # 0=Daily, 1=Weekly
         self._setup_ui()
+        app_events.data_reset.connect(self._on_data_reset)
+
+    def _on_data_reset(self):
+        """Refresh todos when all data is reset."""
+        self._current_date = date.today()
+        self._current_tab = 0
+        self._tab_bar.setCurrentIndex(0)
+        self._refresh()
 
     # ─── helpers ───
 
