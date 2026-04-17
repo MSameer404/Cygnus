@@ -65,7 +65,7 @@ def get_subject_breakdown(start_date: date, end_date: date) -> dict[str, dict]:
         for s in sessions:
             subj = session.get(Subject, s.subject_id)
             name = subj.name if subj else "Unknown"
-            color = subj.color_hex if subj else "#6C5CE7"
+            color = subj.color_hex if subj else "#FFFFFF"  # White for deleted subjects
             if name not in breakdown:
                 breakdown[name] = {"seconds": 0, "color_hex": color}
             breakdown[name]["seconds"] += s.duration_seconds
@@ -74,13 +74,16 @@ def get_subject_breakdown(start_date: date, end_date: date) -> dict[str, dict]:
 
 
 def get_streak() -> int:
-    """Return count of consecutive days with study sessions ending today."""
+    """Return count of consecutive days with study time meeting daily goal, ending today."""
+    from app.core.profile_manager import get_daily_goal_seconds
+
     streak = 0
     current = date.today()
+    daily_goal = get_daily_goal_seconds()
 
     while True:
         total = get_daily_total(current)
-        if total > 0:
+        if total >= daily_goal:
             streak += 1
             current -= timedelta(days=1)
         else:

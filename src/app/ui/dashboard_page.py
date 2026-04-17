@@ -18,7 +18,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from app.core import dday_manager, session_manager
+from app.core import dday_manager, session_manager, stats_engine
 from app.core.events import app_events
 from app.core.timer_engine import TimerEngine
 from app.ui.widgets.dday_card import DDayCard
@@ -74,18 +74,10 @@ class DashboardPage(QWidget):
         self._sessions_count_card = self._make_stat_card("Sessions", "0", "#00CEC9")
         stats_row.addWidget(self._sessions_count_card)
 
-        # Quick start button card
-        quick_card = QFrame()
-        quick_card.setProperty("class", "card")
-        quick_layout = QVBoxLayout(quick_card)
-        quick_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # Streak card
+        self._streak_card = self._make_stat_card("Streak", "0 days", "#FDCB6E")
+        stats_row.addWidget(self._streak_card)
 
-        self._quick_btn = QPushButton("▶  Quick Start")
-        self._quick_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._quick_btn.setStyleSheet("font-size: 16px; padding: 14px 28px;")
-        quick_layout.addWidget(self._quick_btn)
-
-        stats_row.addWidget(quick_card)
         self._main_layout.addLayout(stats_row)
 
         # ---------- Timeline ----------
@@ -181,6 +173,12 @@ class DashboardPage(QWidget):
         count_label = self._sessions_count_card.findChild(QLabel, "stat_sessions")
         if count_label:
             count_label.setText(str(len(sessions)))
+
+        # Update streak
+        streak_label = self._streak_card.findChild(QLabel, "stat_streak")
+        if streak_label:
+            streak = stats_engine.get_streak()
+            streak_label.setText(f"{streak} day{'s' if streak != 1 else ''}")
 
         # Refresh timeline
         self._timeline.set_date(today)

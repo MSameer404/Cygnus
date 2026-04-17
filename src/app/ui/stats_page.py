@@ -2,7 +2,9 @@
 
 import calendar
 import traceback
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
+
+from sqlmodel import and_, select
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
@@ -22,9 +24,9 @@ from app.core import stats_engine
 from app.core.events import app_events
 from app.core.timer_engine import TimerEngine
 from app.ui.widgets.bar_chart import BarChart
-from app.ui.widgets.heatmap import HeatmapWidget
 from app.ui.widgets.pie_chart import PieChart
 from app.ui.widgets.snapshot_widget import SnapshotWidget
+from app.ui.widgets.step_chart import StepChart
 
 
 class StatsPage(QWidget):
@@ -110,15 +112,22 @@ class StatsPage(QWidget):
         self._cards_layout = QHBoxLayout()
         self._cards_layout.setSpacing(16)
 
+        # Cards for Daily tab
         self._total_card = self._make_card("Total Time", "0h", "#6C5CE7")
-        self._avg_card = self._make_card("Daily Average", "0h", "#00CEC9")
-        self._streak_card = self._make_card("Streak", "0 days", "#FDCB6E")
-        self._best_card = self._make_card("Best Day", "0h", "#FF6B6B")
+        self._session_count_card = self._make_card("Sessions", "0", "#00CEC9")
+        self._avg_session_card = self._make_card("Avg Session", "0m", "#FDCB6E")
+        self._longest_session_card = self._make_card("Longest Session", "0m", "#FF6B6B")
 
+        # Cards for Week/Month/Year tabs
+        self._avg_card = self._make_card("Daily Average", "0h", "#00CEC9")
+        self._best_card = self._make_card("Best Day", "0h", "#FF6B6B")
+        # Reuse avg_session_card from Daily tab for Week/Month/Year tabs
+
+        # Initially show Daily tab cards
         self._cards_layout.addWidget(self._total_card)
-        self._cards_layout.addWidget(self._avg_card)
-        self._cards_layout.addWidget(self._streak_card)
-        self._cards_layout.addWidget(self._best_card)
+        self._cards_layout.addWidget(self._session_count_card)
+        self._cards_layout.addWidget(self._avg_session_card)
+        self._cards_layout.addWidget(self._longest_session_card)
         self._layout.addLayout(self._cards_layout)
 
         # ---------- Charts Row ----------
@@ -137,31 +146,31 @@ class StatsPage(QWidget):
         pie_layout.addWidget(self._pie_chart)
         charts_row.addWidget(pie_frame)
 
-        # Bar chart
-        bar_frame = QFrame()
-        bar_frame.setProperty("class", "card")
-        bar_layout = QVBoxLayout(bar_frame)
+        # Chart container (switches between step chart for Day, bar chart for others)
+        self._chart_frame = QFrame()
+        self._chart_frame.setProperty("class", "card")
+        self._chart_layout = QVBoxLayout(self._chart_frame)
+        self._chart_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Bar chart (for Week/Month/Year)
         self._bar_title = QLabel("Daily Breakdown")
-        self._bar_title.setStyleSheet("font-weight: bold; font-size: 14px;")
-        bar_layout.addWidget(self._bar_title)
+        self._bar_title.setStyleSheet("font-weight: bold; font-size: 14px; margin-left: 16px; margin-top: 12px;")
         self._bar_chart = BarChart()
         self._bar_chart.setMinimumHeight(250)
-        bar_layout.addWidget(self._bar_chart)
-        charts_row.addWidget(bar_frame, stretch=1)
+
+        # Step chart (for Day)
+        self._step_title = QLabel("Cumulative Study Time")
+        self._step_title.setStyleSheet("font-weight: bold; font-size: 14px; margin-left: 16px; margin-top: 12px;")
+        self._step_chart = StepChart()
+        self._step_chart.setMinimumHeight(250)
+
+        # Initially show step chart (Day is default tab)
+        self._chart_layout.addWidget(self._step_title)
+        self._chart_layout.addWidget(self._step_chart)
+
+        charts_row.addWidget(self._chart_frame, stretch=1)
 
         self._layout.addLayout(charts_row)
-
-        # ---------- Heatmap ----------
-        heatmap_frame = QFrame()
-        heatmap_frame.setProperty("class", "card")
-        heatmap_layout = QVBoxLayout(heatmap_frame)
-        heatmap_title = QLabel("Study Heatmap")
-        heatmap_title.setStyleSheet("font-weight: bold; font-size: 14px;")
-        heatmap_layout.addWidget(heatmap_title)
-        self._heatmap = HeatmapWidget()
-        self._heatmap.setMinimumHeight(140)
-        heatmap_layout.addWidget(self._heatmap)
-        self._layout.addWidget(heatmap_frame)
 
         self._layout.addStretch()
 
@@ -194,9 +203,29 @@ class StatsPage(QWidget):
                 child.setText(value)
                 break
 
+    def _update_cards_for_tab(self, tab: int):
+        """Switch visible cards based on current tab."""
+        # Clear current cards
+        while self._cards_layout.count():
+            item = self._cards_layout.takeAt(0)
+            if item.widget():
+                item.widget().setParent(None)
+
+        if tab == 0:  # Daily tab
+            self._cards_layout.addWidget(self._total_card)
+            self._cards_layout.addWidget(self._session_count_card)
+            self._cards_layout.addWidget(self._avg_session_card)
+            self._cards_layout.addWidget(self._longest_session_card)
+        else:  # Week/Month/Year tabs
+            self._cards_layout.addWidget(self._total_card)
+            self._cards_layout.addWidget(self._avg_card)
+            self._cards_layout.addWidget(self._avg_session_card)
+            self._cards_layout.addWidget(self._best_card)
+
     def _on_tab_changed(self, index: int):
         self._current_tab = index
         self._current_date = date.today()
+        self._update_cards_for_tab(index)
         self._refresh()
 
     def _go_prev(self):
@@ -244,12 +273,44 @@ class StatsPage(QWidget):
             self._download_btn.show()
             self._date_label.setText(d.strftime("%A, %B %d, %Y"))
             start, end = d, d
+            self._bar_title.setText("Today's Total")
+
+            # Switch to step chart
+            self._switch_to_step_chart()
+
+            # Get sessions for step chart
+            from app.data.database import get_session
+            from app.data.models import StudySession
+
+            day_start = datetime.combine(d, time.min)
+            day_end = datetime.combine(d, time.max)
+            with get_session() as db_session:
+                sessions = db_session.exec(
+                    select(StudySession).where(
+                        and_(
+                            StudySession.start_time >= day_start,
+                            StudySession.start_time <= day_end,
+                        )
+                    )
+                ).all()
+
+            # Prepare sessions for step chart
+            session_data = [
+                {
+                    "start_time": s.start_time,
+                    "end_time": s.end_time,
+                }
+                for s in sessions
+            ]
+            self._step_chart.set_sessions(session_data)
+
+            # Dummy values for bar chart (not shown but needed for other tabs)
             bar_values = [stats_engine.get_daily_total(d)]
             bar_labels = [d.strftime("%a")]
-            self._bar_title.setText("Today's Total")
 
         elif tab == 1:  # Week
             self._download_btn.hide()
+            self._switch_to_bar_chart()
             start = stats_engine.get_week_start(d)
             end = start + timedelta(days=6)
             self._date_label.setText(f"{start.strftime('%b %d')} – {end.strftime('%b %d, %Y')}")
@@ -259,6 +320,7 @@ class StatsPage(QWidget):
 
         elif tab == 2:  # Month
             self._download_btn.hide()
+            self._switch_to_bar_chart()
             start = date(d.year, d.month, 1)
             num_days = calendar.monthrange(d.year, d.month)[1]
             end = date(d.year, d.month, num_days)
@@ -269,6 +331,7 @@ class StatsPage(QWidget):
 
         else:  # Year
             self._download_btn.hide()
+            self._switch_to_bar_chart()
             start = date(d.year, 1, 1)
             end = date(d.year, 12, 31)
             self._date_label.setText(str(d.year))
@@ -284,27 +347,98 @@ class StatsPage(QWidget):
 
         # Summary cards
         total = stats_engine.get_total_for_range(start, end)
-        avg = stats_engine.get_average_daily(start, end)
-        streak = stats_engine.get_streak()
-        best_date, best_secs = stats_engine.get_best_day(start, end)
 
-        self._update_card_value(self._total_card, TimerEngine.format_seconds_short(total))
-        self._update_card_value(self._avg_card, TimerEngine.format_seconds_short(avg))
-        self._update_card_value(self._streak_card, f"{streak} days")
-        self._update_card_value(
-            self._best_card,
-            f"{TimerEngine.format_seconds_short(best_secs)}" if best_secs > 0 else "—",
-        )
+        if tab == 0:  # Daily tab - show session-specific metrics
+            from app.data.database import get_session
+            from app.data.models import StudySession
+
+            # Get sessions for the day
+            day_start = datetime.combine(d, time.min)
+            day_end = datetime.combine(d, time.max)
+            with get_session() as db_session:
+                sessions = db_session.exec(
+                    select(StudySession).where(
+                        and_(
+                            StudySession.start_time >= day_start,
+                            StudySession.start_time <= day_end,
+                        )
+                    )
+                ).all()
+
+            session_count = len(sessions)
+            avg_session = total // session_count if session_count > 0 else 0
+            longest_session = max((s.duration_seconds for s in sessions), default=0)
+
+            self._update_card_value(self._total_card, TimerEngine.format_seconds_short(total))
+            self._update_card_value(self._session_count_card, str(session_count))
+            self._update_card_value(self._avg_session_card, TimerEngine.format_seconds_short(avg_session))
+            self._update_card_value(
+                self._longest_session_card,
+                TimerEngine.format_seconds_short(longest_session) if longest_session > 0 else "—",
+            )
+        else:  # Week/Month/Year tabs - show daily average, avg session, and best day
+            avg = stats_engine.get_average_daily(start, end)
+            best_date, best_secs = stats_engine.get_best_day(start, end)
+
+            # Get all sessions in range for avg session calculation
+            from app.data.database import get_session
+            from app.data.models import StudySession
+
+            start_dt = datetime.combine(start, time.min)
+            end_dt = datetime.combine(end, time.max)
+            with get_session() as db_session:
+                sessions = db_session.exec(
+                    select(StudySession).where(
+                        and_(
+                            StudySession.start_time >= start_dt,
+                            StudySession.start_time <= end_dt,
+                        )
+                    )
+                ).all()
+
+            session_count = len(sessions)
+            avg_session = total // session_count if session_count > 0 else 0
+
+            self._update_card_value(self._total_card, TimerEngine.format_seconds_short(total))
+            self._update_card_value(self._avg_card, TimerEngine.format_seconds_short(avg))
+            self._update_card_value(self._avg_session_card, TimerEngine.format_seconds_short(avg_session))
+            self._update_card_value(
+                self._best_card,
+                f"{TimerEngine.format_seconds_short(best_secs)}" if best_secs > 0 else "—",
+            )
 
         # Charts
         breakdown = stats_engine.get_subject_breakdown(start, end)
         self._pie_chart.set_data(breakdown)
         self._bar_chart.set_data(bar_values, bar_labels)
 
-        # Heatmap (always year view)
-        year = d.year
-        heatmap_data = stats_engine.get_heatmap_data(year)
-        self._heatmap.set_data(heatmap_data, year)
+    def _switch_to_step_chart(self):
+        """Switch chart display to step chart for Day tab."""
+        # Clear current widgets
+        while self._chart_layout.count():
+            item = self._chart_layout.takeAt(0)
+            if item.widget():
+                item.widget().setParent(None)
+
+        # Add step chart widgets
+        self._chart_layout.addWidget(self._step_title)
+        self._chart_layout.addWidget(self._step_chart)
+        self._step_chart.show()
+        self._step_chart.update()
+
+    def _switch_to_bar_chart(self):
+        """Switch chart display to bar chart for Week/Month/Year tabs."""
+        # Clear current widgets
+        while self._chart_layout.count():
+            item = self._chart_layout.takeAt(0)
+            if item.widget():
+                item.widget().setParent(None)
+
+        # Add bar chart widgets
+        self._chart_layout.addWidget(self._bar_title)
+        self._chart_layout.addWidget(self._bar_chart)
+        self._bar_chart.show()
+        self._bar_chart.update()
 
     def showEvent(self, event):
         super().showEvent(event)

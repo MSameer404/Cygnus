@@ -232,36 +232,32 @@ QPushButton.stop-btn:hover {
     background-color: #FF8585;
 }
 
-/* ---------- Subject Chip ---------- */
+/* ---------- Subject Card ---------- */
 
-QPushButton.subject-chip {
-    background-color: #252535;
+QFrame.subject-card {
+    background-color: #1A1A24;
     border: 2px solid transparent;
-    border-radius: 16px;
-    padding: 6px 16px;
-    font-size: 13px;
-    color: #EAEAF0;
+    border-radius: 8px;
 }
 
-QPushButton.subject-chip:hover {
-    background-color: #3A3A50;
+QFrame.subject-card:hover {
+    background-color: #252535;
 }
 
-QPushButton.subject-chip[selected="true"] {
+QFrame.subject-card[selected="true"] {
     border-color: #6C5CE7;
-    background-color: #2A2545;
+    background-color: #1E1A33;
 }
 
-QPushButton.subject-chip-add {
+QPushButton.subject-card-add {
     background-color: transparent;
     border: 2px dashed #3A3A50;
-    border-radius: 16px;
-    padding: 6px 16px;
-    font-size: 13px;
+    border-radius: 8px;
+    font-size: 20px;
     color: #8B8BA0;
 }
 
-QPushButton.subject-chip-add:hover {
+QPushButton.subject-card-add:hover {
     border-color: #6C5CE7;
     color: #6C5CE7;
 }

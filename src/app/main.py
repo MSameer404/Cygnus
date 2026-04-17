@@ -71,9 +71,6 @@ def main():
     todos = TodoPage()
     settings = SettingsPage()
 
-    # Wire quick-start: dashboard button switches to timer page
-    dashboard._quick_btn.clicked.connect(lambda: _switch_to_timer(window))
-
     # Add pages to stack
     window.add_page(dashboard)   # 0: Dashboard
     window.add_page(timer)       # 1: Timer

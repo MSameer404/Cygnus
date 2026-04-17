@@ -1,5 +1,5 @@
 # src/app/ui/timer_page.py
-"""Full-screen timer view with play/pause/stop controls and session list."""
+"""Full-screen timer view with play/pause/stop controls and collapsible session sidebar."""
 
 from datetime import date
 
@@ -12,6 +12,7 @@ from PyQt6.QtWidgets import (
     QMessageBox,
     QPushButton,
     QScrollArea,
+    QSplitter,
     QVBoxLayout,
     QWidget,
 )
@@ -45,14 +46,24 @@ class TimerPage(QWidget):
         self._refresh_sessions()
 
     def _setup_ui(self):
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(40, 30, 40, 30)
-        layout.setSpacing(0)
+        main_layout = QHBoxLayout(self)
+        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setSpacing(0)
+
+        # Create splitter for resizable panels
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+
+        # ========== LEFT PANEL: Timer ==========
+        left_panel = QWidget()
+        left_panel.setMinimumWidth(500)
+        left_layout = QVBoxLayout(left_panel)
+        left_layout.setContentsMargins(20, 10, 20, 10)
+        left_layout.setSpacing(0)
 
         # ---------- Subject Picker ----------
         self.subject_picker = SubjectPicker()
-        layout.addWidget(self.subject_picker)
-        layout.addSpacing(40)
+        left_layout.addWidget(self.subject_picker)
+        left_layout.addSpacing(40)
 
         # ---------- Timer Display ----------
         timer_container = QWidget()
@@ -71,8 +82,8 @@ class TimerPage(QWidget):
         self._status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         timer_layout.addWidget(self._status_label)
 
-        layout.addWidget(timer_container)
-        layout.addSpacing(30)
+        left_layout.addWidget(timer_container)
+        left_layout.addSpacing(30)
 
         # ---------- Controls ----------
         controls = QHBoxLayout()
@@ -99,47 +110,84 @@ class TimerPage(QWidget):
         self._stop_btn.setEnabled(False)
         controls.addWidget(self._stop_btn)
 
-        layout.addLayout(controls)
-        layout.addSpacing(24)
+        left_layout.addLayout(controls)
+        left_layout.addSpacing(24)
 
         # ---------- Today's Total ----------
         self._today_label = QLabel("Today: 0h 0m")
         self._today_label.setProperty("class", "caption")
         self._today_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._today_label.setStyleSheet("font-size: 16px; color: #8B8BA0;")
-        layout.addWidget(self._today_label)
-        layout.addSpacing(20)
+        left_layout.addWidget(self._today_label)
+        left_layout.addStretch()
 
-        # ---------- Today's Sessions ----------
-        sessions_header = QHBoxLayout()
+        splitter.addWidget(left_panel)
+
+        # ========== RIGHT PANEL: Sessions Sidebar ==========
+        self._sidebar = QWidget()
+        self._sidebar.setMinimumWidth(280)
+        self._sidebar.setMaximumWidth(400)
+        sidebar_layout = QVBoxLayout(self._sidebar)
+        sidebar_layout.setContentsMargins(0, 0, 0, 0)
+        sidebar_layout.setSpacing(8)
+
+        # Sidebar header with toggle button
+        header = QHBoxLayout()
+        header.setContentsMargins(8, 0, 8, 0)
+
         sessions_title = QLabel("Today's Sessions")
         sessions_title.setProperty("class", "subheading")
-        sessions_header.addWidget(sessions_title)
-        sessions_header.addStretch()
+        header.addWidget(sessions_title)
+        header.addStretch()
 
-        add_session_btn = QPushButton("＋ Add Session")
-        add_session_btn.setProperty("class", "secondary")
+        add_session_btn = QPushButton("＋")
+        add_session_btn.setFixedSize(28, 28)
+        add_session_btn.setProperty("class", "icon-btn")
         add_session_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        add_session_btn.setToolTip("Manually record a past study session")
+        add_session_btn.setToolTip("Add session")
         add_session_btn.clicked.connect(self._open_manual_session)
-        sessions_header.addWidget(add_session_btn)
+        header.addWidget(add_session_btn)
 
-        layout.addLayout(sessions_header)
-        layout.addSpacing(8)
+        # Collapse/expand button
+        self._toggle_btn = QPushButton("→")
+        self._toggle_btn.setFixedSize(28, 28)
+        self._toggle_btn.setProperty("class", "icon-btn")
+        self._toggle_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._toggle_btn.setToolTip("Collapse sidebar")
+        self._toggle_btn.clicked.connect(self._toggle_sidebar)
+        header.addWidget(self._toggle_btn)
 
-        # Session list in scroll area
+        sidebar_layout.addLayout(header)
+
+        # Compact session list
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
         self._sessions_container = QWidget()
         self._sessions_layout = QVBoxLayout(self._sessions_container)
-        self._sessions_layout.setContentsMargins(0, 0, 0, 0)
-        self._sessions_layout.setSpacing(8)
+        self._sessions_layout.setContentsMargins(8, 0, 8, 0)
+        self._sessions_layout.setSpacing(6)
         self._sessions_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         scroll.setWidget(self._sessions_container)
-        layout.addWidget(scroll, stretch=1)
+        sidebar_layout.addWidget(scroll)
+
+        splitter.addWidget(self._sidebar)
+        splitter.setSizes([700, 300])
+        splitter.setCollapsible(1, False)
+
+        main_layout.addWidget(splitter, stretch=1)
+
+        # Collapsed state button (shown when sidebar is hidden)
+        self._expand_btn = QPushButton("←")
+        self._expand_btn.setFixedSize(32, 32)
+        self._expand_btn.setProperty("class", "icon-btn")
+        self._expand_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._expand_btn.setToolTip("Show sessions")
+        self._expand_btn.clicked.connect(self._toggle_sidebar)
+        self._expand_btn.hide()
+        main_layout.addWidget(self._expand_btn, alignment=Qt.AlignmentFlag.AlignTop)
 
     def _connect_signals(self):
         self.subject_picker.subject_selected.connect(self._on_subject_selected)
@@ -171,6 +219,7 @@ class TimerPage(QWidget):
                 duration_seconds=duration,
             )
         self._refresh_sessions()
+        self.subject_picker.refresh()
 
     def _on_tick(self, elapsed: int):
         self._timer_label.setText(TimerEngine.format_seconds(elapsed))
@@ -180,6 +229,7 @@ class TimerPage(QWidget):
             self._play_btn.hide()
             self._pause_btn.show()
             self._stop_btn.setEnabled(True)
+            self.subject_picker.set_interactive(False)
             self._status_label.setText(
                 f"Studying: {self._current_subject.name}" if self._current_subject else "Studying..."
             )
@@ -195,6 +245,7 @@ class TimerPage(QWidget):
             self._play_btn.show()
             self._play_btn.setText("▶")
             self._stop_btn.setEnabled(False)
+            self.subject_picker.set_interactive(True)
             self._timer_label.setText("00:00:00")
             self._status_label.setText("Ready to study")
             self._status_label.setStyleSheet("font-size: 14px; color: #8B8BA0;")
@@ -223,48 +274,68 @@ class TimerPage(QWidget):
             self._sessions_layout.addWidget(card)
 
     def _make_session_card(self, study_session) -> QFrame:
-        """Create a compact session card widget."""
+        """Create a compact session card widget with color accent."""
         card = QFrame()
         card.setProperty("class", "card")
-        row = QHBoxLayout(card)
-        row.setContentsMargins(12, 8, 12, 8)
-        row.setSpacing(12)
+        main_layout = QHBoxLayout(card)
+        main_layout.setContentsMargins(0, 0, 8, 0)
+        main_layout.setSpacing(0)
 
-        # Color dot
+        # Get subject info
         subj = subject_manager.get_subject(study_session.subject_id)
         color = subj.color_hex if subj else "#6C5CE7"
-        dot = QLabel("●")
-        dot.setStyleSheet(f"color: {color}; font-size: 16px;")
-        dot.setFixedWidth(20)
-        row.addWidget(dot)
 
-        # Subject name
+        # Left color accent bar
+        accent_bar = QWidget()
+        accent_bar.setFixedWidth(4)
+        accent_bar.setStyleSheet(f"background-color: {color}; border-radius: 2px;")
+        main_layout.addWidget(accent_bar)
+
+        # Content area
+        content = QWidget()
+        content_layout = QVBoxLayout(content)
+        content_layout.setContentsMargins(10, 8, 0, 8)
+        content_layout.setSpacing(4)
+
+        # Subject name (top)
         name = QLabel(subj.name if subj else "Unknown")
-        name.setStyleSheet("font-weight: bold;")
-        row.addWidget(name)
+        name.setStyleSheet("font-weight: bold; font-size: 13px; color: #EAEAF0;")
+        content_layout.addWidget(name)
 
-        # Time range
+        # Time range (bottom)
         start_str = study_session.start_time.strftime("%H:%M")
         end_str = study_session.end_time.strftime("%H:%M")
         time_label = QLabel(f"{start_str} – {end_str}")
-        time_label.setProperty("class", "muted")
-        row.addWidget(time_label)
+        time_label.setStyleSheet("font-size: 11px; color: #8B8BA0;")
+        content_layout.addWidget(time_label)
 
-        row.addStretch()
+        main_layout.addWidget(content, stretch=1)
+
+        # Right side: duration and delete button
+        right_side = QWidget()
+        right_layout = QHBoxLayout(right_side)
+        right_layout.setContentsMargins(0, 0, 0, 0)
+        right_layout.setSpacing(8)
+        right_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # Duration
         dur = QLabel(TimerEngine.format_seconds(study_session.duration_seconds))
-        dur.setStyleSheet("font-family: 'Consolas', monospace; color: #EAEAF0;")
-        row.addWidget(dur)
+        dur.setStyleSheet("font-family: 'Consolas', monospace; font-size: 13px; color: #EAEAF0;")
+        right_layout.addWidget(dur)
 
-        # Delete button
-        del_btn = QPushButton("✕")
-        del_btn.setProperty("class", "icon-btn")
-        del_btn.setFixedSize(28, 28)
+        # Delete button (red, vertically centered)
+        del_btn = QPushButton("×")
+        del_btn.setFixedSize(24, 24)
         del_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         del_btn.setToolTip("Delete session")
+        del_btn.setStyleSheet(
+            "background-color: #FF6B6B; color: #FFFFFF; border: none; "
+            "border-radius: 4px; font-size: 16px; font-weight: bold;"
+        )
         del_btn.clicked.connect(lambda: self._delete_session(study_session.id))
-        row.addWidget(del_btn)
+        right_layout.addWidget(del_btn)
+
+        main_layout.addWidget(right_side, alignment=Qt.AlignmentFlag.AlignVCenter)
 
         return card
 
@@ -279,14 +350,26 @@ class TimerPage(QWidget):
         if reply == QMessageBox.StandardButton.Yes:
             session_manager.delete_session(session_id)
             self._refresh_sessions()
+            self.subject_picker.refresh()
 
     def _open_manual_session(self):
         from app.ui.widgets.manual_session_dialog import ManualSessionDialog
         dialog = ManualSessionDialog(self)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             self._refresh_sessions()
+            self.subject_picker.refresh()
 
     def showEvent(self, event):
         """Refresh sessions when page becomes visible."""
         super().showEvent(event)
         self._refresh_sessions()
+        self.subject_picker.refresh()
+
+    def _toggle_sidebar(self):
+        """Toggle sidebar visibility."""
+        if self._sidebar.isVisible():
+            self._sidebar.hide()
+            self._expand_btn.show()
+        else:
+            self._sidebar.show()
+            self._expand_btn.hide()

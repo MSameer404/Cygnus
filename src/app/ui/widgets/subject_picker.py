@@ -1,5 +1,7 @@
 # src/app/ui/widgets/subject_picker.py
-"""Horizontal scrollable subject selector with color-coded chips."""
+"""Horizontal scrollable subject selector with color-coded cards."""
+
+from datetime import date
 
 from PyQt6.QtCore import pyqtSignal, Qt
 from PyQt6.QtGui import QColor
@@ -16,12 +18,14 @@ from PyQt6.QtWidgets import (
     QMenu,
 )
 
-from app.core import subject_manager
+from app.core import subject_manager, session_manager
+from app.core.timer_engine import TimerEngine
 from app.data.models import Subject
+from app.ui.widgets.subject_card import SubjectCard
 
 
 class SubjectPicker(QWidget):
-    """Horizontal row of subject chips. Emits subject_selected(Subject)."""
+    """Horizontal row of subject cards. Emits subject_selected(Subject)."""
 
     subject_selected = pyqtSignal(object)  # Subject or None
     subjects_changed = pyqtSignal()
@@ -39,7 +43,7 @@ class SubjectPicker(QWidget):
         scroll.setWidgetResizable(True)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        scroll.setFixedHeight(44)
+        scroll.setFixedHeight(85)
 
         self._container = QWidget()
         self._layout = QHBoxLayout(self._container)
@@ -53,7 +57,7 @@ class SubjectPicker(QWidget):
         self.refresh()
 
     def refresh(self):
-        """Reload subjects from DB and rebuild chips."""
+        """Reload subjects from DB and rebuild cards."""
         # Clear existing
         while self._layout.count():
             item = self._layout.takeAt(0)
@@ -63,28 +67,25 @@ class SubjectPicker(QWidget):
         subjects = subject_manager.list_subjects()
 
         for subj in subjects:
-            chip = QPushButton(f"● {subj.name}")
-            chip.setProperty("class", "subject-chip")
-            chip.setCursor(Qt.CursorShape.PointingHandCursor)
-            chip.setStyleSheet(
-                f"QPushButton {{ color: {subj.color_hex}; }}"
-                f"QPushButton[selected=\"true\"] {{ border-color: {subj.color_hex}; "
-                f"background-color: {self._dim_color(subj.color_hex)}; }}"
-            )
+            # Get today's study time for this subject
+            today_seconds = session_manager.get_total_seconds_for_subject_on_date(subj.id, date.today())
+            time_text = TimerEngine.format_seconds_short(today_seconds) if today_seconds > 0 else "0m"
+
+            card = SubjectCard(subj.id, subj.name, subj.color_hex, time_text)
+            card.setProperty("class", "subject-card")
             is_sel = subj.id == self._selected_id
-            chip.setProperty(
-                "selected", "true" if is_sel else "false"
+            card.setProperty("selected", "true" if is_sel else "false")
+            card.clicked.connect(lambda s=subj: self._select(s))
+            card.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+            card.customContextMenuRequested.connect(
+                lambda pos, s=subj, c=card: self._show_context_menu(s, c, pos)
             )
-            chip.clicked.connect(lambda checked, s=subj: self._select(s))
-            chip.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-            chip.customContextMenuRequested.connect(
-                lambda pos, s=subj, b=chip: self._show_context_menu(s, b, pos)
-            )
-            self._layout.addWidget(chip)
+            self._layout.addWidget(card)
 
         # "+" button
         add_btn = QPushButton("+")
-        add_btn.setProperty("class", "subject-chip-add")
+        add_btn.setProperty("class", "subject-card-add")
+        add_btn.setFixedSize(50, 75)
         add_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         add_btn.setToolTip("Add subject")
         add_btn.clicked.connect(self._add_subject_dialog)
@@ -97,30 +98,38 @@ class SubjectPicker(QWidget):
     def _select(self, subject: Subject):
         self._selected_id = subject.id
         self.subject_selected.emit(subject)
-        # Update chip visuals
+        # Update card visuals
         for i in range(self._layout.count()):
             w = self._layout.itemAt(i).widget()
-            if w and w.property("class") == "subject-chip":
-                # Find matching subject by button text
-                is_this = w.text().endswith(subject.name)
+            if w and isinstance(w, SubjectCard):
+                is_this = w.subject_id == subject.id
                 w.setProperty("selected", "true" if is_this else "false")
                 w.style().unpolish(w)
                 w.style().polish(w)
 
-    def _show_context_menu(self, subject: Subject, button: QPushButton, pos):
+    def _show_context_menu(self, subject: Subject, card: SubjectCard, pos):
         menu = QMenu(self)
         edit_action = menu.addAction("✏️ Edit")
         delete_action = menu.addAction("🗑️ Delete")
 
-        action = menu.exec(button.mapToGlobal(pos))
+        action = menu.exec(card.mapToGlobal(pos))
         if action == edit_action:
             self._edit_subject_dialog(subject)
         elif action == delete_action:
-            subject_manager.delete_subject(subject.id)
-            if self._selected_id == subject.id:
-                self._selected_id = None
-            self.refresh()
-            self.subjects_changed.emit()
+            from PyQt6.QtWidgets import QMessageBox
+            reply = QMessageBox.warning(
+                self,
+                "Delete Subject",
+                f"Are you sure you want to delete '{subject.name}'?\n\nThis action cannot be undone.",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            if reply == QMessageBox.StandardButton.Yes:
+                subject_manager.delete_subject(subject.id)
+                if self._selected_id == subject.id:
+                    self._selected_id = None
+                self.refresh()
+                self.subjects_changed.emit()
 
     def _add_subject_dialog(self):
         dialog = SubjectDialog(self)
@@ -144,11 +153,14 @@ class SubjectPicker(QWidget):
     def selected_subject_id(self) -> int | None:
         return self._selected_id
 
-    @staticmethod
-    def _dim_color(hex_color: str) -> str:
-        """Create a dimmed/transparent version of a color for selected background."""
-        c = QColor(hex_color)
-        return f"rgba({c.red()}, {c.green()}, {c.blue()}, 40)"
+    def set_interactive(self, enabled: bool):
+        """Enable or disable card interaction (for when timer is running)."""
+        self.setEnabled(enabled)
+        # Update visual opacity
+        if enabled:
+            self.setStyleSheet("")
+        else:
+            self.setStyleSheet("opacity: 0.6;")
 
 
 class SubjectDialog(QDialog):

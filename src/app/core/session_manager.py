@@ -113,6 +113,12 @@ def get_total_seconds_for_date(target_date: date) -> int:
     return sum(s.duration_seconds for s in sessions)
 
 
+def get_total_seconds_for_subject_on_date(subject_id: int, target_date: date) -> int:
+    """Get total study seconds for a specific subject on a given date."""
+    sessions = get_sessions_for_date(target_date)
+    return sum(s.duration_seconds for s in sessions if s.subject_id == subject_id)
+
+
 def delete_session(session_id: int) -> bool:
     """Delete a session by ID. Returns True if deleted."""
     with get_session() as session:
