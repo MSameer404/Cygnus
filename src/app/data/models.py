@@ -32,8 +32,8 @@ class StudySession(SQLModel, table=True):
     notes: str = Field(default="")
 
 
-class TodoItem(SQLModel, table=True):
-    """A to-do item optionally linked to a subject."""
+class TaskItem(SQLModel, table=True):
+    """A task optionally linked to a subject."""
 
     __tablename__ = "todo_items"
 
@@ -43,6 +43,9 @@ class TodoItem(SQLModel, table=True):
     is_completed: bool = Field(default=False)
     target_date: date = Field(default_factory=date.today)
     created_at: datetime = Field(default_factory=datetime.now)
+    priority: str = Field(default="med")  # high | med | low
+    in_work: bool = Field(default=False)
+    is_dumped: bool = Field(default=False)
 
 
 class DDayEvent(SQLModel, table=True):

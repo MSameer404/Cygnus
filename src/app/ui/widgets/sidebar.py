@@ -19,7 +19,7 @@ class Sidebar(QWidget):
         ("🏠", "Dashboard"),
         ("⏱️", "Timer"),
         ("📊", "Statistics"),
-        ("✅", "Todos"),
+        ("✅", "Tasks"),
         ("⚙️", "Settings"),
     ]
 

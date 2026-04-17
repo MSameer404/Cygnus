@@ -584,3 +584,239 @@ QLabel#profileCompleteness {
     font-size: 12px;
     padding: 4px;
 }
+
+/* ---------- Task dashboard (scoped; dark theme) ---------- */
+
+QWidget#taskDashboard {
+    background-color: transparent;
+}
+
+QWidget#taskDashboard QLabel[class="task-page-title"] {
+    font-size: 26px;
+    font-weight: bold;
+    color: #EAEAF0;
+}
+
+QWidget#taskDashboard QPushButton[class="task-create-btn"] {
+    background-color: #1D9E75;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+QWidget#taskDashboard QPushButton[class="task-create-btn"]:hover {
+    background-color: #24B888;
+}
+
+QWidget#taskDashboard QPushButton[class="task-create-btn"]:pressed {
+    background-color: #178A63;
+}
+
+QWidget#taskDashboard QFrame[class="task-stat-card card"] {
+    min-height: 72px;
+}
+
+QWidget#taskDashboard QLabel[class="task-stat-value stat-pending"] {
+    font-size: 22px;
+    font-weight: bold;
+    color: #EAEAF0;
+}
+
+QWidget#taskDashboard QLabel[class="task-stat-value stat-overdue"] {
+    font-size: 22px;
+    font-weight: bold;
+    color: #E24B4A;
+}
+
+QWidget#taskDashboard QLabel[class="task-stat-value stat-done"] {
+    font-size: 22px;
+    font-weight: bold;
+    color: #1D9E75;
+}
+
+QWidget#taskDashboard QLabel[class="task-stat-value stat-dump"] {
+    font-size: 22px;
+    font-weight: bold;
+    color: #8B8BA0;
+}
+
+QWidget#taskDashboard QLabel[class="task-stat-value stat-total"] {
+    font-size: 22px;
+    font-weight: bold;
+    color: #A29BFE;
+}
+
+QWidget#taskDashboard QLabel[class="task-stat-caption"] {
+    font-size: 12px;
+    color: #8B8BA0;
+}
+
+QWidget#taskDashboard QFrame[class="task-panel card"] {
+    min-height: 200px;
+}
+
+QWidget#taskDashboard QLabel[class="task-panel-title"] {
+    font-size: 16px;
+    font-weight: bold;
+    color: #EAEAF0;
+}
+
+QWidget#taskDashboard QPushButton[class="task-filter-btn"] {
+    background-color: #252535;
+    color: #8B8BA0;
+    border: 1px solid #3A3A50;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+}
+
+QWidget#taskDashboard QPushButton[class="task-filter-btn"]:hover {
+    color: #EAEAF0;
+    border-color: #6C5CE7;
+}
+
+QWidget#taskDashboard QPushButton[class="task-filter-btn"]:checked {
+    background-color: #6C5CE7;
+    color: #FFFFFF;
+    border-color: #6C5CE7;
+}
+
+QWidget#taskDashboard QLabel[class="task-work-title"] {
+    font-size: 14px;
+    font-weight: bold;
+    color: #EAEAF0;
+}
+
+QWidget#taskDashboard QLabel[class="task-task-title"] {
+    font-size: 15px;
+    font-weight: bold;
+    color: #EAEAF0;
+}
+
+QWidget#taskDashboard QLabel[class="task-meta"] {
+    font-size: 12px;
+    color: #8B8BA0;
+}
+
+QWidget#taskDashboard QPushButton[class="task-secondary-btn"] {
+    background-color: #1D9E75;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+}
+
+QWidget#taskDashboard QPushButton[class="task-secondary-btn"]:hover {
+    background-color: #24B888;
+}
+
+QWidget#taskDashboard QPushButton[class="task-ghost-btn"] {
+    background-color: transparent;
+    color: #8B8BA0;
+    border: 1px solid #3A3A50;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+}
+
+QWidget#taskDashboard QPushButton[class="task-ghost-btn"]:hover {
+    color: #EAEAF0;
+    border-color: #8B8BA0;
+}
+
+QWidget#taskDashboard QPushButton[class="task-accent-outline-btn"] {
+    background-color: transparent;
+    color: #1D9E75;
+    border: 1px solid #1D9E75;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+}
+
+QWidget#taskDashboard QPushButton[class="task-accent-outline-btn"]:hover {
+    background-color: rgba(29, 158, 117, 0.15);
+}
+
+QWidget#taskDashboard QFrame[class="task-work-row card"] {
+    border: 1px solid #252535;
+    border-radius: 8px;
+}
+
+QWidget#taskDashboard QFrame[class="task-task-card card"] {
+    border: 1px solid #252535;
+    border-radius: 8px;
+}
+
+QWidget#taskDashboard QLabel[class="task-pill-priority-high"] {
+    background-color: rgba(226, 75, 74, 0.15);
+    color: #E24B4A;
+    border: 1px solid #E24B4A;
+    border-radius: 12px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+QWidget#taskDashboard QLabel[class="task-pill-priority-med"] {
+    background-color: rgba(162, 155, 254, 0.12);
+    color: #A29BFE;
+    border: 1px solid #6C5CE7;
+    border-radius: 12px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+QWidget#taskDashboard QLabel[class="task-pill-priority-low"] {
+    background-color: rgba(139, 139, 160, 0.15);
+    color: #8B8BA0;
+    border: 1px solid #3A3A50;
+    border-radius: 12px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+QWidget#taskDashboard QLabel[class="task-pill-status-pending"] {
+    background-color: rgba(108, 92, 231, 0.15);
+    color: #A29BFE;
+    border: 1px solid #6C5CE7;
+    border-radius: 12px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+QWidget#taskDashboard QLabel[class="task-pill-status-overdue"] {
+    background-color: rgba(226, 75, 74, 0.12);
+    color: #E24B4A;
+    border: 1px solid #E24B4A;
+    border-radius: 12px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+QWidget#taskDashboard QLabel[class="task-pill-status-completed"] {
+    background-color: rgba(29, 158, 117, 0.15);
+    color: #1D9E75;
+    border: 1px solid #1D9E75;
+    border-radius: 12px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+QWidget#taskDashboard QLabel[class="task-pill-status-dump"] {
+    background-color: rgba(139, 139, 160, 0.2);
+    color: #8B8BA0;
+    border: 1px solid #3A3A50;
+    border-radius: 12px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: bold;
+}

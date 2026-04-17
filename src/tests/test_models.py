@@ -5,7 +5,8 @@ import pytest
 from datetime import date, datetime
 
 from app.data.database import init_db, get_session
-from app.data.models import Subject, StudySession, TodoItem, DDayEvent, AppSetting
+from app.data.models import Subject, StudySession, TaskItem, DDayEvent, AppSetting
+from app.core import task_manager
 
 
 @pytest.fixture(autouse=True)
@@ -47,14 +48,35 @@ def test_create_study_session():
         assert s.id is not None
 
 
-def test_create_todo():
+def test_create_task():
     with get_session() as session:
-        t = TodoItem(title="Study chapter 5", target_date=date.today())
+        t = TaskItem(title="Study chapter 5", target_date=date.today())
         session.add(t)
         session.commit()
         session.refresh(t)
         assert t.id is not None
         assert t.is_completed is False
+        assert t.priority == "med"
+        assert t.in_work is False
+        assert t.is_dumped is False
+
+
+def test_task_manager_create_priority_and_list_all():
+    t = task_manager.create_task("Priority task", priority="high")
+    assert t.priority == "high"
+    all_rows = task_manager.list_all_tasks()
+    assert any(r.id == t.id for r in all_rows)
+
+
+def test_task_manager_update_fields():
+    t = task_manager.create_task("W", priority="low")
+    u = task_manager.update_task_fields(t.id, in_work=True)
+    assert u is not None
+    assert u.in_work is True
+    u2 = task_manager.update_task_fields(t.id, is_completed=True, in_work=False)
+    assert u2 is not None
+    assert u2.is_completed is True
+    assert u2.in_work is False
 
 
 def test_create_dday_event():

@@ -14,7 +14,7 @@ def reset_all_data() -> None:
 
     This will:
     1. Close the database engine to release file locks
-    2. Delete the SQLite database file (all sessions, todos, events, settings)
+    2. Delete the SQLite database file (all sessions, tasks, events, settings)
     3. Delete the profile picture
     4. Recreate the engine and reinitialize with default data
     """

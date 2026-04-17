@@ -315,7 +315,7 @@ class SettingsPage(QWidget):
         reply = QMessageBox.warning(
             self,
             "Reset All Data",
-            "⚠ This will permanently delete ALL sessions, todos, events, profile data, and settings.\n\nAre you sure?",
+            "⚠ This will permanently delete ALL sessions, tasks, events, profile data, and settings.\n\nAre you sure?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )

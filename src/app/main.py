@@ -16,7 +16,7 @@ from app.ui.main_window import MainWindow
 from app.ui.dashboard_page import DashboardPage
 from app.ui.timer_page import TimerPage
 from app.ui.stats_page import StatsPage
-from app.ui.todo_page import TodoPage
+from app.ui.task_page import TaskPage
 from app.ui.settings_page import SettingsPage
 
 
@@ -68,14 +68,14 @@ def main():
     dashboard = DashboardPage()
     timer = TimerPage()
     stats = StatsPage()
-    todos = TodoPage()
+    tasks = TaskPage()
     settings = SettingsPage()
 
     # Add pages to stack
     window.add_page(dashboard)   # 0: Dashboard
     window.add_page(timer)       # 1: Timer
     window.add_page(stats)       # 2: Statistics
-    window.add_page(todos)       # 3: Todos
+    window.add_page(tasks)       # 3: Tasks
     window.add_page(settings)    # 4: Settings
 
     # ---------- Keyboard shortcuts ----------

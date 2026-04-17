@@ -2,6 +2,7 @@
 """Database engine, session management, and initialization."""
 
 import os
+import sqlite3
 import sys
 from contextlib import contextmanager
 from pathlib import Path
@@ -41,12 +42,43 @@ DEFAULT_SETTINGS = {
 }
 
 
+def _ensure_task_item_columns() -> None:
+    """Add new columns to task items on existing SQLite DBs (create_all does not migrate)."""
+    if not DB_PATH.exists():
+        return
+    conn = sqlite3.connect(str(DB_PATH))
+    try:
+        cur = conn.execute("PRAGMA table_info(todo_items)")
+        cols = {row[1] for row in cur.fetchall()}
+        if not cols:
+            return
+        alters = []
+        if "priority" not in cols:
+            alters.append(
+                "ALTER TABLE todo_items ADD COLUMN priority VARCHAR NOT NULL DEFAULT 'med'"
+            )
+        if "in_work" not in cols:
+            alters.append(
+                "ALTER TABLE todo_items ADD COLUMN in_work INTEGER NOT NULL DEFAULT 0"
+            )
+        if "is_dumped" not in cols:
+            alters.append(
+                "ALTER TABLE todo_items ADD COLUMN is_dumped INTEGER NOT NULL DEFAULT 0"
+            )
+        for sql in alters:
+            conn.execute(sql)
+        conn.commit()
+    finally:
+        conn.close()
+
+
 # ---------- Public API ----------
 
 
 def init_db() -> None:
     """Create all tables and seed default data if first run."""
     SQLModel.metadata.create_all(_engine)
+    _ensure_task_item_columns()
 
     with get_session() as session:
         # Seed subjects if table is empty

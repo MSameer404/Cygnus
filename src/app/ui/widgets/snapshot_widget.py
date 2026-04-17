@@ -17,7 +17,7 @@ from PyQt6.QtWidgets import (
 from app.core import profile_manager
 from app.core.timer_engine import TimerEngine
 from app.core import stats_engine
-from app.core import todo_manager
+from app.core import task_manager
 
 
 class SnapshotWidget(QWidget):
@@ -69,7 +69,7 @@ class SnapshotWidget(QWidget):
         
         layout.addSpacing(20)
 
-        # ---------- Body (Subjects left, Todos right) ----------
+        # ---------- Body (Subjects left, Tasks right) ----------
         body_layout = QHBoxLayout()
         body_layout.setSpacing(40)
         
@@ -120,25 +120,30 @@ class SnapshotWidget(QWidget):
         left_layout.addStretch()
         body_layout.addWidget(left_frame, stretch=1)
         
-        # Right: Todo List
+        # Right: Task List
         right_frame = QFrame()
         right_frame.setProperty("class", "card")
         right_layout = QVBoxLayout(right_frame)
         right_layout.setContentsMargins(30, 30, 30, 30)
         
-        todo_title = QLabel("Today's To-Dos")
-        todo_title.setStyleSheet("font-size: 20px; font-weight: bold; margin-bottom: 10px;")
-        right_layout.addWidget(todo_title)
+        task_title = QLabel("Today's Tasks")
+        task_title.setStyleSheet("font-size: 20px; font-weight: bold; margin-bottom: 10px;")
+        right_layout.addWidget(task_title)
         
-        todos = todo_manager.list_todos(target_date=self.target_date)
-        if not todos:
-            empty_todo = QLabel("No todos scheduled for today.")
-            empty_todo.setStyleSheet("color: #7A819E; font-size: 16px;")
-            right_layout.addWidget(empty_todo)
+        # Due today, excluding dumped (handled in list_tasks) and items moved to the work table.
+        tasks = [
+            t
+            for t in task_manager.list_tasks(target_date=self.target_date)
+            if not t.in_work
+        ]
+        if not tasks:
+            empty_task = QLabel("No tasks scheduled for today.")
+            empty_task.setStyleSheet("color: #7A819E; font-size: 16px;")
+            right_layout.addWidget(empty_task)
         else:
-            for t in todos:
+            for t in tasks:
                 row = QHBoxLayout()
-                # Bulletproof todo attributes
+                # Bulletproof task attributes
                 is_comp = getattr(t, 'is_completed', False)
                 title_text = str(getattr(t, 'title', "Unknown task"))
                 
