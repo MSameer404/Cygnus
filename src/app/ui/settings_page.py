@@ -24,6 +24,7 @@ from PyQt6.QtWidgets import (
 )
 
 from app.core import dday_manager, session_manager, subject_manager
+from app.core.update_manager import CURRENT_VERSION, get_update_manager
 from app.data.database import DB_PATH
 from app.data.models import DDayEvent, Subject
 
@@ -109,9 +110,26 @@ class SettingsPage(QWidget):
 
         # ========== About ==========
         layout.addWidget(self._section_label("About"))
-        about = QLabel("Cygnus (Beta v1) — A Yeolpumta-inspired study timer.\nBuilt with Python, PyQt6, and SQLModel.")
+        about = QLabel(f"Cygnus v{CURRENT_VERSION} — A Yeolpumta-inspired study timer.\nBuilt with Python, PyQt6, and SQLModel.")
         about.setProperty("class", "muted")
         layout.addWidget(about)
+
+        # Update check row
+        update_row = QHBoxLayout()
+        update_row.setSpacing(12)
+
+        self._check_update_btn = QPushButton("🔍 Check for Update")
+        self._check_update_btn.setProperty("class", "secondary")
+        self._check_update_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._check_update_btn.clicked.connect(self._check_for_update)
+        update_row.addWidget(self._check_update_btn)
+
+        self._update_status = QLabel("")
+        self._update_status.setStyleSheet("font-size: 12px; color: #8B8BA0;")
+        update_row.addWidget(self._update_status)
+        update_row.addStretch()
+
+        layout.addLayout(update_row)
 
         layout.addStretch()
 
@@ -341,6 +359,24 @@ class SettingsPage(QWidget):
                 app_events.data_reset.emit()
 
                 QMessageBox.information(self, "Reset Complete", "All data has been reset. The app is now fresh.")
+
+    def _check_for_update(self):
+        """Check for application updates from GitHub."""
+        self._check_update_btn.setEnabled(False)
+        self._check_update_btn.setText("Checking...")
+        self._update_status.setText("Checking GitHub for updates...")
+
+        update_manager = get_update_manager()
+        worker = update_manager.check_for_update(self)
+        
+        # Reset button state when check completes (success or error)
+        worker.finished.connect(self._reset_update_button)
+
+    def _reset_update_button(self):
+        """Reset the check update button to default state."""
+        self._check_update_btn.setEnabled(True)
+        self._check_update_btn.setText("🔍 Check for Update")
+        self._update_status.setText("")
 
     def showEvent(self, event):
         super().showEvent(event)

@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import (
     QFileDialog,
     QFrame,
     QHBoxLayout,
+    QInputDialog,
     QLabel,
     QMessageBox,
     QPushButton,
@@ -271,6 +272,7 @@ class StatsPage(QWidget):
 
         if tab == 0:  # Day
             self._download_btn.show()
+            self._download_btn.setText("Report")
             self._date_label.setText(d.strftime("%A, %B %d, %Y"))
             start, end = d, d
             self._bar_title.setText("Today's Total")
@@ -309,7 +311,8 @@ class StatsPage(QWidget):
             bar_labels = [d.strftime("%a")]
 
         elif tab == 1:  # Week
-            self._download_btn.hide()
+            self._download_btn.show()
+            self._download_btn.setText("Report")
             self._switch_to_bar_chart()
             start = stats_engine.get_week_start(d)
             end = start + timedelta(days=6)
@@ -445,30 +448,73 @@ class StatsPage(QWidget):
         self._refresh()
 
     def _download_snapshot(self):
-        """Generate and save the image snapshot of the current day."""
-        if self._current_tab != 0:
-            return
+        """Generate report based on current tab (Day snapshot or Week report)."""
+        if self._current_tab == 0:  # Day - save snapshot image
+            # Ask for user note
+            user_note, ok = QInputDialog.getText(
+                self,
+                "Daily Report Note",
+                "Enter a note for your daily report (optional):",
+                text=""
+            )
+            if not ok:
+                return
+
+            file_path, _ = QFileDialog.getSaveFileName(
+                self,
+                "Save Snapshot",
+                f"Cygnus_Daily_Report_{self._current_date.strftime('%Y-%m-%d')}.png",
+                "Images (*.png)"
+            )
             
-        file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "Save Snapshot",
-            f"Cygnus_Snapshot_{self._current_date.strftime('%Y-%m-%d')}.png",
-            "Images (*.png)"
-        )
-        
-        if not file_path:
-            return
+            if not file_path:
+                return
+                
+            try:
+                total_time = stats_engine.get_daily_total(self._current_date)
+                snapsht_widget = SnapshotWidget(self._current_date, total_time, user_note)
+                
+                # Get the image
+                image = snapsht_widget.generate_image()
+                
+                if image.save(file_path):
+                    QMessageBox.information(self, "Success", f"Daily report saved successfully to:\n{file_path}")
+                else:
+                    QMessageBox.warning(self, "Error", "Failed to save the daily report image.")
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"An error occurred while generating daily report:\n{traceback.format_exc()}")
+
+        elif self._current_tab == 1:  # Week - save week report image
+            from app.ui.widgets.week_report_widget import WeekReportWidget
             
-        try:
-            total_time = stats_engine.get_daily_total(self._current_date)
-            snapsht_widget = SnapshotWidget(self._current_date, total_time)
+            # Ask for user note
+            user_note, ok = QInputDialog.getText(
+                self,
+                "Week Report Note",
+                "Enter a note for your weekly report (optional):",
+                text=""
+            )
+            if not ok:
+                return
+
+            week_start = stats_engine.get_week_start(self._current_date)
+            file_path, _ = QFileDialog.getSaveFileName(
+                self,
+                "Save Week Report",
+                f"Cygnus_Week_Report_{week_start.strftime('%Y-%m-%d')}.png",
+                "Images (*.png)"
+            )
             
-            # Get the image
-            image = snapsht_widget.generate_image()
-            
-            if image.save(file_path):
-                QMessageBox.information(self, "Success", f"Snapshot saved successfully to:\n{file_path}")
-            else:
-                QMessageBox.warning(self, "Error", "Failed to save the snapshot image.")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"An error occurred while generating snapshot:\n{traceback.format_exc()}")
+            if not file_path:
+                return
+                
+            try:
+                report_widget = WeekReportWidget(week_start, user_note)
+                image = report_widget.generate_image()
+                
+                if image.save(file_path):
+                    QMessageBox.information(self, "Success", f"Week report saved successfully to:\n{file_path}")
+                else:
+                    QMessageBox.warning(self, "Error", "Failed to save the week report image.")
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"An error occurred while generating week report:\n{traceback.format_exc()}")

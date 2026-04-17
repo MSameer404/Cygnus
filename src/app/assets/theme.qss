@@ -699,6 +699,7 @@ QWidget#taskDashboard QLabel[class="task-task-title"] {
 QWidget#taskDashboard QLabel[class="task-meta"] {
     font-size: 12px;
     color: #8B8BA0;
+    border: none;
 }
 
 QWidget#taskDashboard QPushButton[class="task-secondary-btn"] {
@@ -714,109 +715,85 @@ QWidget#taskDashboard QPushButton[class="task-secondary-btn"]:hover {
     background-color: #24B888;
 }
 
-QWidget#taskDashboard QPushButton[class="task-ghost-btn"] {
-    background-color: transparent;
-    color: #8B8BA0;
-    border: 1px solid #3A3A50;
-    border-radius: 8px;
-    padding: 8px 14px;
-    font-size: 13px;
+/* New unified action buttons */
+QWidget#taskDashboard QPushButton[class="task-action-btn"] {
+    background-color: #1D9E75;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
 }
 
-QWidget#taskDashboard QPushButton[class="task-ghost-btn"]:hover {
-    color: #EAEAF0;
-    border-color: #8B8BA0;
+QWidget#taskDashboard QPushButton[class="task-action-btn"]:hover {
+    background-color: #24B888;
 }
 
-QWidget#taskDashboard QPushButton[class="task-accent-outline-btn"] {
-    background-color: transparent;
-    color: #1D9E75;
-    border: 1px solid #1D9E75;
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 13px;
+QWidget#taskDashboard QPushButton[class="task-dump-btn"] {
+    background-color: rgba(226, 75, 74, 0.2);
+    color: #FF6B6B;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
 }
 
-QWidget#taskDashboard QPushButton[class="task-accent-outline-btn"]:hover {
-    background-color: rgba(29, 158, 117, 0.15);
+QWidget#taskDashboard QPushButton[class="task-dump-btn"]:hover {
+    background-color: rgba(226, 75, 74, 0.35);
 }
 
 QWidget#taskDashboard QFrame[class="task-work-row card"] {
-    border: 1px solid #252535;
+    border: 1px solid #3A3A50;
     border-radius: 8px;
 }
 
 QWidget#taskDashboard QFrame[class="task-task-card card"] {
-    border: 1px solid #252535;
+    border: 1px solid #3A3A50;
     border-radius: 8px;
 }
 
-QWidget#taskDashboard QLabel[class="task-pill-priority-high"] {
-    background-color: rgba(226, 75, 74, 0.15);
-    color: #E24B4A;
-    border: 1px solid #E24B4A;
-    border-radius: 12px;
-    padding: 4px 10px;
+/* Unified pill style for all priority and status */
+QWidget#taskDashboard QLabel[class^="task-pill-"] {
+    border: none;
+    border-radius: 6px;
+    padding: 5px 12px;
     font-size: 11px;
-    font-weight: bold;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+QWidget#taskDashboard QLabel[class="task-pill-priority-high"] {
+    background-color: rgba(226, 75, 74, 0.25);
+    color: #FF6B6B;
 }
 
 QWidget#taskDashboard QLabel[class="task-pill-priority-med"] {
-    background-color: rgba(162, 155, 254, 0.12);
-    color: #A29BFE;
-    border: 1px solid #6C5CE7;
-    border-radius: 12px;
-    padding: 4px 10px;
-    font-size: 11px;
-    font-weight: bold;
+    background-color: rgba(162, 155, 254, 0.25);
+    color: #B4AEFF;
 }
 
 QWidget#taskDashboard QLabel[class="task-pill-priority-low"] {
-    background-color: rgba(139, 139, 160, 0.15);
-    color: #8B8BA0;
-    border: 1px solid #3A3A50;
-    border-radius: 12px;
-    padding: 4px 10px;
-    font-size: 11px;
-    font-weight: bold;
+    background-color: rgba(139, 139, 160, 0.25);
+    color: #A0A0B0;
 }
 
 QWidget#taskDashboard QLabel[class="task-pill-status-pending"] {
-    background-color: rgba(108, 92, 231, 0.15);
+    background-color: rgba(108, 92, 231, 0.25);
     color: #A29BFE;
-    border: 1px solid #6C5CE7;
-    border-radius: 12px;
-    padding: 4px 10px;
-    font-size: 11px;
-    font-weight: bold;
 }
 
 QWidget#taskDashboard QLabel[class="task-pill-status-overdue"] {
-    background-color: rgba(226, 75, 74, 0.12);
-    color: #E24B4A;
-    border: 1px solid #E24B4A;
-    border-radius: 12px;
-    padding: 4px 10px;
-    font-size: 11px;
-    font-weight: bold;
+    background-color: rgba(226, 75, 74, 0.25);
+    color: #FF6B6B;
 }
 
 QWidget#taskDashboard QLabel[class="task-pill-status-completed"] {
-    background-color: rgba(29, 158, 117, 0.15);
-    color: #1D9E75;
-    border: 1px solid #1D9E75;
-    border-radius: 12px;
-    padding: 4px 10px;
-    font-size: 11px;
-    font-weight: bold;
+    background-color: rgba(29, 158, 117, 0.25);
+    color: #2ECC71;
 }
 
 QWidget#taskDashboard QLabel[class="task-pill-status-dump"] {
-    background-color: rgba(139, 139, 160, 0.2);
-    color: #8B8BA0;
-    border: 1px solid #3A3A50;
-    border-radius: 12px;
-    padding: 4px 10px;
-    font-size: 11px;
-    font-weight: bold;
+    background-color: rgba(139, 139, 160, 0.3);
+    color: #A0A0B0;
 }

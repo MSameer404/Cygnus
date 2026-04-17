@@ -12,8 +12,10 @@ from PyQt6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
+    QMessageBox,
     QPushButton,
     QScrollArea,
+    QSizePolicy,
     QVBoxLayout,
     QWidget,
 )
@@ -104,7 +106,7 @@ class TaskPage(QWidget):
         self._work_inner = QWidget()
         self._work_layout = QVBoxLayout(self._work_inner)
         self._work_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self._work_layout.setSpacing(8)
+        self._work_layout.setSpacing(6)
         self._work_scroll.setWidget(self._work_inner)
         work_outer.addWidget(self._work_scroll, stretch=1)
         split.addWidget(self._work_frame, stretch=4)
@@ -117,10 +119,23 @@ class TaskPage(QWidget):
 
         tabs = QHBoxLayout()
         tabs.setSpacing(8)
+
         for key, label in (
-            (self._FILTER_ALL, "All"),
             (self._FILTER_PENDING, "Pending"),
             (self._FILTER_OVERDUE, "Overdue"),
+        ):
+            btn = QPushButton(label)
+            btn.setCheckable(True)
+            btn.setProperty("class", "task-filter-btn")
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.clicked.connect(lambda checked, k=key: self._on_filter_clicked(k))
+            self._filter_buttons[key] = btn
+            tabs.addWidget(btn)
+
+        tabs.addStretch()
+
+        for key, label in (
+            (self._FILTER_ALL, "All"),
             (self._FILTER_COMPLETED, "Completed"),
             (self._FILTER_DUMP, "Dump"),
         ):
@@ -131,7 +146,7 @@ class TaskPage(QWidget):
             btn.clicked.connect(lambda checked, k=key: self._on_filter_clicked(k))
             self._filter_buttons[key] = btn
             tabs.addWidget(btn)
-        tabs.addStretch()
+
         list_outer.addLayout(tabs)
         self._set_filter_active(self._FILTER_ALL)
 
@@ -143,7 +158,7 @@ class TaskPage(QWidget):
         self._task_inner = QWidget()
         self._task_layout = QVBoxLayout(self._task_inner)
         self._task_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self._task_layout.setSpacing(10)
+        self._task_layout.setSpacing(6)
         self._task_scroll.setWidget(self._task_inner)
         list_outer.addWidget(self._task_scroll, stretch=1)
         split.addWidget(self._list_frame, stretch=6)
@@ -191,10 +206,12 @@ class TaskPage(QWidget):
         self._tasks = []
         for t in task_manager.list_all_tasks():
             subject_name = ""
+            subject_color = "#8B8BA0"
             if t.subject_id:
                 s = subject_manager.get_subject(t.subject_id)
                 if s:
                     subject_name = s.name
+                    subject_color = s.color_hex
             overdue = (
                 not t.is_completed
                 and not t.is_dumped
@@ -206,6 +223,7 @@ class TaskPage(QWidget):
                     "title": t.title,
                     "subject_id": t.subject_id,
                     "subject_name": subject_name,
+                    "subject_color": subject_color,
                     "target_date": t.target_date,
                     "priority": t.priority or "med",
                     "is_completed": t.is_completed,
@@ -274,7 +292,7 @@ class TaskPage(QWidget):
         card = QFrame()
         card.setProperty("class", "task-work-row card")
         h = QHBoxLayout(card)
-        h.setContentsMargins(10, 8, 10, 8)
+        h.setContentsMargins(8, 6, 10, 6)
         mid = QVBoxLayout()
         mid.setSpacing(2)
         t = QLabel(row["title"])
@@ -343,58 +361,100 @@ class TaskPage(QWidget):
     def _make_task_card(self, row: dict[str, Any]) -> QFrame:
         card = QFrame()
         card.setProperty("class", "task-task-card card")
-        v = QVBoxLayout(card)
-        v.setContentsMargins(12, 10, 12, 10)
-        v.setSpacing(8)
+        # Horizontal layout: left info | middle pills | right actions
+        body = QHBoxLayout(card)
+        body.setContentsMargins(12, 10, 12, 10)
+        body.setSpacing(16)
 
-        top = QHBoxLayout()
-        title = QLabel(row["title"])
+        # Left: Title and Subject
+        left_widget = QWidget()
+        left = QVBoxLayout(left_widget)
+        left.setSpacing(4)
+        left.setContentsMargins(0, 0, 0, 0)
+
+        title = QLabel(row["title"].title())
         title.setWordWrap(True)
-        title.setProperty("class", "task-task-title")
-        top.addWidget(title, stretch=1)
-        v.addLayout(top)
+        title.setStyleSheet("font-size: 15px; font-weight: 500; color: #EAEAF0;")
+        left.addWidget(title)
 
-        subj = QLabel(row["subject_name"] or "No subject")
-        subj.setProperty("class", "task-meta")
-        v.addWidget(subj)
+        subj_name = row["subject_name"] or "No subject"
+        subj = QLabel(subj_name)
+        subj.setStyleSheet(f"font-size: 12px; color: {row['subject_color']}; font-weight: 500;")
+        left.addWidget(subj)
+        left_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        body.addWidget(left_widget, stretch=1)
 
-        due = QLabel(f"Due {row['target_date'].strftime('%Y-%m-%d')}")
-        due.setProperty("class", "task-meta")
-        v.addWidget(due)
+        # Middle: Priority pill + Date + Status pill (in a horizontal row)
+        middle_widget = QWidget()
+        middle = QHBoxLayout(middle_widget)
+        middle.setSpacing(8)
+        middle.setContentsMargins(0, 0, 0, 0)
+        middle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        middle_widget.setMinimumWidth(240)
+        middle_widget.setMaximumWidth(280)
 
-        pills = QHBoxLayout()
-        pills.setSpacing(6)
-        pr = QLabel(row["priority"].title())
+        # Priority pill (fixed width for alignment)
+        pr = QLabel(row["priority"].upper())
         pr.setProperty("class", f"task-pill-priority-{row['priority']}")
-        pills.addWidget(pr)
-        st = QLabel(self._status_text(row))
-        st.setProperty("class", f"task-pill-status-{self._status_slug(row)}")
-        pills.addWidget(st)
-        pills.addStretch()
-        v.addLayout(pills)
+        pr.setMinimumWidth(50)
+        pr.setMaximumWidth(60)
+        pr.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        middle.addWidget(pr)
 
-        actions = QHBoxLayout()
-        actions.setSpacing(8)
+        # Due date (fixed width for alignment)
+        due_str = row["target_date"].strftime("%d %b %Y")
+        due = QLabel(due_str)
+        due.setStyleSheet("font-size: 12px; color: #8B8BA0;")
+        due.setMinimumWidth(80)
+        due.setMaximumWidth(90)
+        due.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        middle.addWidget(due)
+
+        # Status pill (fixed width for alignment)
+        st = QLabel(self._status_text(row).upper())
+        st.setProperty("class", f"task-pill-status-{self._status_slug(row)}")
+        st.setMinimumWidth(90)
+        st.setMaximumWidth(100)
+        st.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        middle.addWidget(st)
+
+        body.addWidget(middle_widget)
+
+        # Right: Action buttons (consistent zone, fixed width for alignment)
+        right_widget = QWidget()
+        right = QHBoxLayout(right_widget)
+        right.setSpacing(8)
+        right.setContentsMargins(0, 0, 0, 0)
+        right.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        right_widget.setMinimumWidth(80)
+        right_widget.setMaximumWidth(80)
+
         tid = row["id"]
-        can_work = (
-            not row["is_completed"]
-            and not row["is_dumped"]
-            and not row["in_work"]
-        )
-        if can_work:
-            aw = QPushButton("+ Add to work table")
-            aw.setProperty("class", "task-accent-outline-btn")
-            aw.setCursor(Qt.CursorShape.PointingHandCursor)
-            aw.clicked.connect(lambda _=False, i=tid: self._add_to_work(i))
-            actions.addWidget(aw)
-        if not row["is_dumped"] and not row["is_completed"]:
-            dump_btn = QPushButton("Move to dump")
-            dump_btn.setProperty("class", "task-ghost-btn")
-            dump_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            dump_btn.clicked.connect(lambda _=False, i=tid: self._move_to_dump(i))
-            actions.addWidget(dump_btn)
-        actions.addStretch()
-        v.addLayout(actions)
+        can_work = not row["is_completed"] and not row["is_dumped"] and not row["in_work"]
+        can_dump = not row["is_dumped"] and not row["is_completed"]
+
+        # Always create buttons (to maintain consistent width), but hide/show as needed
+        add_btn = QPushButton("▶")
+        add_btn.setProperty("class", "task-action-btn")
+        add_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        add_btn.setFixedWidth(36)
+        add_btn.setFixedHeight(32)
+        add_btn.setToolTip("Add to workspace")
+        add_btn.clicked.connect(lambda _=False, i=tid: self._add_to_work(i))
+        add_btn.setVisible(can_work)
+        right.addWidget(add_btn)
+
+        dump_btn = QPushButton("🗑️")
+        dump_btn.setProperty("class", "task-dump-btn")
+        dump_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        dump_btn.setFixedWidth(36)
+        dump_btn.setFixedHeight(32)
+        dump_btn.setToolTip("Move to dump")
+        dump_btn.clicked.connect(lambda _=False, i=tid: self._move_to_dump(i))
+        dump_btn.setVisible(can_dump)
+        right.addWidget(dump_btn)
+
+        body.addWidget(right_widget)
         return card
 
     def _status_slug(self, row: dict[str, Any]) -> str:
@@ -411,10 +471,18 @@ class TaskPage(QWidget):
         self._refresh()
 
     def _move_to_dump(self, task_id: int):
-        task_manager.update_task_fields(
-            task_id, is_dumped=True, in_work=False
+        reply = QMessageBox.warning(
+            self,
+            "Confirm Dump",
+            "Are you sure you want to move this task to dump?\nThis action cannot be undone easily.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
         )
-        self._refresh()
+        if reply == QMessageBox.StandardButton.Yes:
+            task_manager.update_task_fields(
+                task_id, is_dumped=True, in_work=False
+            )
+            self._refresh()
 
     def _refresh(self):
         self._rebuild_cache()

@@ -1,11 +1,11 @@
-# src/app/ui/widgets/snapshot_widget.py
-"""Hidden widget purely for rendering the daily snapshot to an image."""
+# src/app/ui/widgets/week_report_widget.py
+"""Hidden widget purely for rendering the weekly report to an image."""
 
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPixmap, QImage, QPainter
+from PyQt6.QtGui import QImage, QPainter, QPixmap
 from PyQt6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -15,32 +15,34 @@ from PyQt6.QtWidgets import (
 )
 
 from app.core import profile_manager
-from app.core.timer_engine import TimerEngine
 from app.core import stats_engine
-from app.core import task_manager
+from app.core.timer_engine import TimerEngine
+from app.ui.widgets.bar_chart import BarChart
 
 
-class SnapshotWidget(QWidget):
-    """Off-screen widget to render snapshot."""
+class WeekReportWidget(QWidget):
+    """Off-screen widget to render week report snapshot."""
 
-    def __init__(self, target_date: date, total_seconds: int, user_note: str = "", parent=None):
+    def __init__(self, week_start: date, user_note: str = "", parent=None):
         super().__init__(parent)
-        self.target_date = target_date
-        self.total_seconds = total_seconds
+        self.week_start = week_start
+        self.week_end = week_start + timedelta(days=6)
         self.user_note = user_note
         
         # Fixed resolution (laptop screen ratio 16:9, e.g., 1280x720)
         self.setFixedSize(1280, 720)
-        self.setObjectName("SnapshotWidget")
+        self.setObjectName("WeekReportWidget")
         
-        # We must load the stylesheet to ensure perfect styling
+        # Load the stylesheet to ensure perfect styling
         theme_path = Path(__file__).parent.parent.parent / "assets" / "theme.qss"
         if theme_path.exists():
             self.setStyleSheet(theme_path.read_text(encoding="utf8"))
             
         self._setup_ui()
+        self._load_data()
 
     def _setup_ui(self):
+        """Build the week report UI."""
         # Using a main frame to apply background explicitly
         main_frame = QFrame(self)
         main_frame.setFixedSize(1280, 720)
@@ -50,7 +52,7 @@ class SnapshotWidget(QWidget):
         layout.setContentsMargins(50, 30, 50, 30)
         layout.setSpacing(20)
 
-        # ---------- TOP ROW: Profile Card (Left) + Date/Time Card (Right) ----------
+        # ---------- TOP ROW: Profile Card (Left) + Week Date/Total Time Card (Right) ----------
         top_row = QHBoxLayout()
         top_row.setSpacing(20)
 
@@ -109,32 +111,31 @@ class SnapshotWidget(QWidget):
         profile_layout.addStretch()
         top_row.addWidget(profile_card, stretch=1)
 
-        # RIGHT: Date & Total Time Card
-        date_time_card = QFrame()
-        date_time_card.setStyleSheet("background-color: #252535; border-radius: 12px;")
-        date_time_layout = QVBoxLayout(date_time_card)
-        date_time_layout.setContentsMargins(20, 15, 20, 15)
-        date_time_layout.setSpacing(8)
-        date_time_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # RIGHT: Week Date & Total Time Card
+        week_card = QFrame()
+        week_card.setStyleSheet("background-color: #252535; border-radius: 12px;")
+        week_layout = QVBoxLayout(week_card)
+        week_layout.setContentsMargins(20, 15, 20, 15)
+        week_layout.setSpacing(8)
+        week_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Today's Date (Header 3 style)
-        date_str = self.target_date.strftime("%B %d, %Y")
-        date_lbl = QLabel(date_str)
-        date_lbl.setStyleSheet("font-size: 18px; color: #8B8BA0;")
-        date_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        date_time_layout.addWidget(date_lbl)
+        # Week Date Range (Header 3 style)
+        week_str = f"{self.week_start.strftime('%b %d')} – {self.week_end.strftime('%b %d, %Y')}"
+        week_lbl = QLabel(week_str)
+        week_lbl.setStyleSheet("font-size: 18px; color: #8B8BA0;")
+        week_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        week_layout.addWidget(week_lbl)
 
-        # Total Time (Header 1 style - BIG)
-        time_str = TimerEngine.format_seconds_short(self.total_seconds)
-        time_lbl = QLabel(time_str)
-        time_lbl.setStyleSheet("font-size: 48px; font-weight: bold; color: #6C5CE7;")
-        time_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        date_time_layout.addWidget(time_lbl)
+        # Total Weekly Time (Header 1 style - BIG)
+        self._total_label = QLabel("0h 0m")
+        self._total_label.setStyleSheet("font-size: 48px; font-weight: bold; color: #6C5CE7;")
+        self._total_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        week_layout.addWidget(self._total_label)
 
-        top_row.addWidget(date_time_card, stretch=1)
+        top_row.addWidget(week_card, stretch=1)
         layout.addLayout(top_row)
 
-        # ---------- MIDDLE SECTION: Subjects (Left) + Tasks (Right) ----------
+        # ---------- MIDDLE SECTION: Subject Breakdown (Left) + Daily Chart (Right) ----------
         middle_row = QHBoxLayout()
         middle_row.setSpacing(20)
 
@@ -149,9 +150,10 @@ class SnapshotWidget(QWidget):
         sub_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #EAEAF0; margin-bottom: 5px;")
         subjects_layout.addWidget(sub_title)
 
-        breakdown = stats_engine.get_subject_breakdown(self.target_date, self.target_date)
+        # Get weekly subject breakdown
+        breakdown = stats_engine.get_subject_breakdown(self.week_start, self.week_end)
         if not breakdown:
-            empty_lbl = QLabel("No subjects tracked today.")
+            empty_lbl = QLabel("No subjects tracked this week.")
             empty_lbl.setStyleSheet("color: #7A819E; font-size: 14px;")
             subjects_layout.addWidget(empty_lbl)
         else:
@@ -160,7 +162,6 @@ class SnapshotWidget(QWidget):
                     row = QHBoxLayout()
                     row.setSpacing(10)
                     
-                    # Bulletproof dictionary access
                     c_hex = "#6C5CE7"
                     sec = 0
                     if isinstance(item, dict):
@@ -187,49 +188,22 @@ class SnapshotWidget(QWidget):
         subjects_layout.addStretch()
         middle_row.addWidget(subjects_card, stretch=1)
 
-        # RIGHT: Today's Tasks
-        tasks_card = QFrame()
-        tasks_card.setStyleSheet("background-color: #252535; border-radius: 12px;")
-        tasks_layout = QVBoxLayout(tasks_card)
-        tasks_layout.setContentsMargins(20, 20, 20, 20)
-        tasks_layout.setSpacing(12)
+        # RIGHT: Daily Study Time Bar Chart
+        chart_card = QFrame()
+        chart_card.setStyleSheet("background-color: #252535; border-radius: 12px;")
+        chart_layout = QVBoxLayout(chart_card)
+        chart_layout.setContentsMargins(20, 20, 20, 20)
+        chart_layout.setSpacing(12)
 
-        task_title = QLabel("Today's Tasks")
-        task_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #EAEAF0; margin-bottom: 5px;")
-        tasks_layout.addWidget(task_title)
+        chart_title = QLabel("Daily Study Time")
+        chart_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #EAEAF0; margin-bottom: 5px;")
+        chart_layout.addWidget(chart_title)
 
-        # Due today, excluding dumped and items moved to the work table
-        tasks = [
-            t
-            for t in task_manager.list_tasks(target_date=self.target_date)
-            if not t.in_work
-        ]
-        if not tasks:
-            empty_task = QLabel("No tasks scheduled for today.")
-            empty_task.setStyleSheet("color: #7A819E; font-size: 14px;")
-            tasks_layout.addWidget(empty_task)
-        else:
-            for t in tasks:
-                row = QHBoxLayout()
-                row.setSpacing(8)
-                
-                is_comp = getattr(t, 'is_completed', False)
-                title_text = str(getattr(t, 'title', "Unknown task"))
-                
-                check = "☑" if is_comp else "☐"
-                chk_lbl = QLabel(check)
-                chk_lbl.setStyleSheet(f"font-size: 18px; color: {'#00CEC9' if is_comp else '#7A819E'};")
-                row.addWidget(chk_lbl)
-                
-                t_lbl = QLabel(title_text)
-                t_style = "font-size: 14px; text-decoration: line-through; color: #7A819E;" if is_comp else "font-size: 14px; color: #EAEAF0;"
-                t_lbl.setStyleSheet(t_style)
-                row.addWidget(t_lbl, stretch=1)
-                
-                tasks_layout.addLayout(row)
-        tasks_layout.addStretch()
-        middle_row.addWidget(tasks_card, stretch=1)
-
+        self._bar_chart = BarChart()
+        self._bar_chart.setMinimumHeight(180)
+        chart_layout.addWidget(self._bar_chart)
+        
+        middle_row.addWidget(chart_card, stretch=1)
         layout.addLayout(middle_row, stretch=1)
 
         # ---------- BOTTOM: User Note (in quotation marks) ----------
@@ -255,17 +229,32 @@ class SnapshotWidget(QWidget):
         footer.addWidget(cygnus_mark)
         
         layout.addLayout(footer)
-    
+
+    def _load_data(self):
+        """Load and display weekly data."""
+        # Get daily totals
+        daily_totals = stats_engine.get_weekly_totals(self.week_start)
+        bar_labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+        # Calculate total
+        total_seconds = sum(daily_totals)
+        self._total_label.setText(TimerEngine.format_seconds_short(total_seconds))
+
+        # Set bar chart data
+        self._bar_chart.set_data(daily_totals, bar_labels, accent="#6C5CE7")
+
     def generate_image(self) -> QImage:
-        """Render widget to a QImage."""
+        """Render this widget to a QImage."""
         self.ensurePolished()
-        img = QImage(self.size(), QImage.Format.Format_ARGB32)
-        img.fill(Qt.GlobalColor.transparent)
         
-        painter = QPainter(img)
+        image = QImage(self.size(), QImage.Format.Format_ARGB32)
+        image.fill(Qt.GlobalColor.transparent)
+        
+        painter = QPainter(image)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         painter.setRenderHint(QPainter.RenderHint.TextAntialiasing)
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         self.render(painter)
         painter.end()
-        return img
+        
+        return image
