@@ -4,7 +4,9 @@
 from pathlib import Path
 from PyQt6.QtCore import pyqtSignal, Qt, QSize
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QVBoxLayout, QPushButton, QWidget, QSpacerItem, QSizePolicy
+from PyQt6.QtWidgets import QVBoxLayout, QPushButton, QWidget, QSpacerItem, QSizePolicy, QLabel
+
+from app.core.update_manager import CURRENT_VERSION
 
 
 class Sidebar(QWidget):
@@ -13,6 +15,7 @@ class Sidebar(QWidget):
     page_changed = pyqtSignal(int)
     profile_clicked = pyqtSignal()
     contact_clicked = pyqtSignal()
+    report_clicked = pyqtSignal()
 
     # Unicode icons for each page
     PAGES = [
@@ -77,6 +80,14 @@ class Sidebar(QWidget):
             QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         )
 
+        # Report button
+        report_btn = QPushButton("�")
+        report_btn.setProperty("class", "sidebar-btn")
+        report_btn.setToolTip("Send Feedback")
+        report_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        report_btn.clicked.connect(self.report_clicked.emit)
+        layout.addWidget(report_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+
         # Contact Us button
         contact_btn = QPushButton("📧")
         contact_btn.setProperty("class", "sidebar-btn")
@@ -84,6 +95,12 @@ class Sidebar(QWidget):
         contact_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         contact_btn.clicked.connect(self.contact_clicked.emit)
         layout.addWidget(contact_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        # Version label
+        version_label = QLabel(f"v{CURRENT_VERSION}")
+        version_label.setStyleSheet("color: #FF6B6B; font-size: 11px; margin-top: 6px;")
+        version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(version_label, alignment=Qt.AlignmentFlag.AlignCenter)
 
         self._update_active()
 

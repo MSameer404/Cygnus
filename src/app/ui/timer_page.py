@@ -85,30 +85,16 @@ class TimerPage(QWidget):
         left_layout.addWidget(timer_container)
         left_layout.addSpacing(30)
 
-        # ---------- Controls ----------
+        # ---------- Controls (Single Button) ----------
         controls = QHBoxLayout()
         controls.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        controls.setSpacing(20)
 
-        self._play_btn = QPushButton("▶")
-        self._play_btn.setProperty("class", "play-btn")
-        self._play_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._play_btn.setToolTip("Start / Resume")
-        controls.addWidget(self._play_btn)
-
-        self._pause_btn = QPushButton("⏸")
-        self._pause_btn.setProperty("class", "play-btn")
-        self._pause_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._pause_btn.setToolTip("Pause")
-        self._pause_btn.hide()
-        controls.addWidget(self._pause_btn)
-
-        self._stop_btn = QPushButton("⏹")
-        self._stop_btn.setProperty("class", "stop-btn")
-        self._stop_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._stop_btn.setToolTip("Stop & Save")
-        self._stop_btn.setEnabled(False)
-        controls.addWidget(self._stop_btn)
+        self._session_btn = QPushButton("▶ Start Session")
+        self._session_btn.setProperty("class", "task-action-btn")
+        self._session_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._session_btn.setMinimumWidth(180)
+        self._session_btn.clicked.connect(self._on_session_button_clicked)
+        controls.addWidget(self._session_btn)
 
         left_layout.addLayout(controls)
         left_layout.addSpacing(24)
@@ -193,31 +179,65 @@ class TimerPage(QWidget):
         self.subject_picker.subject_selected.connect(self._on_subject_selected)
         self.timer_engine.tick.connect(self._on_tick)
         self.timer_engine.state_changed.connect(self._on_state_changed)
-        self._play_btn.clicked.connect(self._on_play)
-        self._pause_btn.clicked.connect(self._on_pause)
-        self._stop_btn.clicked.connect(self._on_stop)
 
     def _on_subject_selected(self, subject: Subject):
         self._current_subject = subject
 
-    def _on_play(self):
-        if self._current_subject is None:
-            self._status_label.setText("⚠ Select a subject first")
-            return
-        self.timer_engine.start()
+    def _on_session_button_clicked(self):
+        """Handle the single session button click with confirmations."""
+        if not self.timer_engine.is_running:
+            # Starting a session - require confirmation
+            if self._current_subject is None:
+                self._status_label.setText("⚠ Select a subject first")
+                return
 
-    def _on_pause(self):
-        self.timer_engine.pause()
-
-    def _on_stop(self):
-        start, end, duration = self.timer_engine.stop()
-        if start and duration > 0 and self._current_subject:
-            session_manager.save_session(
-                subject_id=self._current_subject.id,
-                start_time=start,
-                end_time=end,
-                duration_seconds=duration,
+            reply = QMessageBox.question(
+                self,
+                "Start Session",
+                f"Start studying <b>{self._current_subject.name}</b>?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.Yes,
             )
+            if reply == QMessageBox.StandardButton.Yes:
+                self.timer_engine.start()
+        else:
+            # Stopping a session - require confirmation
+            elapsed = self.timer_engine.elapsed_seconds
+            elapsed_str = TimerEngine.format_seconds(elapsed)
+
+            reply = QMessageBox.question(
+                self,
+                "Stop & Save Session",
+                f"Stop session and save <b>{elapsed_str}</b> of study time?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.Yes,
+            )
+            if reply == QMessageBox.StandardButton.Yes:
+                self._stop_and_save()
+
+    def _stop_and_save(self):
+        """Stop timer and save the session (if at least 5 minutes)."""
+        start, end, duration = self.timer_engine.stop()
+        MIN_SESSION_SECONDS = 5 * 60  # 5 minutes
+
+        if start and duration > 0 and self._current_subject:
+            if duration < MIN_SESSION_SECONDS:
+                # Session too short - discard without saving
+                QMessageBox.information(
+                    self,
+                    "Session Too Short",
+                    f"Session is too small to be counted in database.\n"
+                    f"Duration: {TimerEngine.format_seconds(duration)}\n\n"
+                    f"It should be at least 5 minutes to be saved.",
+                )
+            else:
+                # Save valid session
+                session_manager.save_session(
+                    subject_id=self._current_subject.id,
+                    start_time=start,
+                    end_time=end,
+                    duration_seconds=duration,
+                )
         self._refresh_sessions()
         self.subject_picker.refresh()
 
@@ -226,25 +246,20 @@ class TimerPage(QWidget):
 
     def _on_state_changed(self, state: str):
         if state == "running":
-            self._play_btn.hide()
-            self._pause_btn.show()
-            self._stop_btn.setEnabled(True)
+            self._session_btn.setText("⏹ Stop & Save")
+            self._session_btn.setProperty("class", "danger-btn")
+            self._session_btn.style().unpolish(self._session_btn)
+            self._session_btn.style().polish(self._session_btn)
             self.subject_picker.set_interactive(False)
             self._status_label.setText(
                 f"Studying: {self._current_subject.name}" if self._current_subject else "Studying..."
             )
             self._status_label.setStyleSheet("font-size: 14px; color: #00CEC9;")
-        elif state == "paused":
-            self._pause_btn.hide()
-            self._play_btn.show()
-            self._play_btn.setText("▶")
-            self._status_label.setText("Paused")
-            self._status_label.setStyleSheet("font-size: 14px; color: #FDCB6E;")
         else:  # idle
-            self._pause_btn.hide()
-            self._play_btn.show()
-            self._play_btn.setText("▶")
-            self._stop_btn.setEnabled(False)
+            self._session_btn.setText("▶ Start Session")
+            self._session_btn.setProperty("class", "task-action-btn")
+            self._session_btn.style().unpolish(self._session_btn)
+            self._session_btn.style().polish(self._session_btn)
             self.subject_picker.set_interactive(True)
             self._timer_label.setText("00:00:00")
             self._status_label.setText("Ready to study")

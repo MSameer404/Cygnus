@@ -11,7 +11,6 @@ from PyQt6.QtWidgets import (
     QFileDialog,
     QFrame,
     QHBoxLayout,
-    QInputDialog,
     QLabel,
     QMessageBox,
     QPushButton,
@@ -450,16 +449,6 @@ class StatsPage(QWidget):
     def _download_snapshot(self):
         """Generate report based on current tab (Day snapshot or Week report)."""
         if self._current_tab == 0:  # Day - save snapshot image
-            # Ask for user note
-            user_note, ok = QInputDialog.getText(
-                self,
-                "Daily Report Note",
-                "Enter a note for your daily report (optional):",
-                text=""
-            )
-            if not ok:
-                return
-
             file_path, _ = QFileDialog.getSaveFileName(
                 self,
                 "Save Snapshot",
@@ -472,7 +461,7 @@ class StatsPage(QWidget):
                 
             try:
                 total_time = stats_engine.get_daily_total(self._current_date)
-                snapsht_widget = SnapshotWidget(self._current_date, total_time, user_note)
+                snapsht_widget = SnapshotWidget(self._current_date, total_time)
                 
                 # Get the image
                 image = snapsht_widget.generate_image()
@@ -487,16 +476,6 @@ class StatsPage(QWidget):
         elif self._current_tab == 1:  # Week - save week report image
             from app.ui.widgets.week_report_widget import WeekReportWidget
             
-            # Ask for user note
-            user_note, ok = QInputDialog.getText(
-                self,
-                "Week Report Note",
-                "Enter a note for your weekly report (optional):",
-                text=""
-            )
-            if not ok:
-                return
-
             week_start = stats_engine.get_week_start(self._current_date)
             file_path, _ = QFileDialog.getSaveFileName(
                 self,
@@ -509,7 +488,7 @@ class StatsPage(QWidget):
                 return
                 
             try:
-                report_widget = WeekReportWidget(week_start, user_note)
+                report_widget = WeekReportWidget(week_start)
                 image = report_widget.generate_image()
                 
                 if image.save(file_path):

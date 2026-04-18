@@ -5,7 +5,7 @@ a = Analysis(
     ['src\\app\\main.py'],
     pathex=['src'],
     binaries=[],
-    datas=[('src/app/assets', 'app/assets'), ('src/app/data', 'app/data')],
+    datas=[('src/app/assets', 'app/assets'), ('src/app/data', 'app/data'), ('version.txt', '.')],
     hiddenimports=['sqlmodel', 'pydantic', 'sqlalchemy'],
     hookspath=[],
     hooksconfig={},

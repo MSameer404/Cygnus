@@ -1,13 +1,18 @@
 # src/app/ui/contact_dialog.py
 """Contact Us dialog for the application."""
 
+import webbrowser
+
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import (
     QDialog,
     QLabel,
+    QPushButton,
     QVBoxLayout,
 )
+
+GITHUB_URL = "https://github.com/MohammadSameer-Dev/Cygnus"
 
 
 class ContactDialog(QDialog):
@@ -16,7 +21,7 @@ class ContactDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Contact Us")
-        self.setFixedSize(480, 400)
+        self.setFixedSize(480, 420)
         self.setObjectName("contactDialog")
         self._setup_ui()
 
@@ -60,32 +65,37 @@ class ContactDialog(QDialog):
         # Details
         details_layout = QVBoxLayout()
         details_layout.setSpacing(8)
-        
+
         details = [
             ("Email", "mohammad.sameer@myyahoo.com"),
             ("Reddit", "u/UrbanSabhuOriginal"),
             ("Discord", "@iamsmr"),
-            ("GitHub", "https://github.com/MohammadSameer-Dev/Cygnus/tree/master"),
         ]
 
         for label_text, value_text in details:
-            if value_text.startswith("http"):
-                text = f"<b>{label_text.ljust(8)} :</b> <a href='{value_text}' style='color: #4DA8DA; text-decoration: none;'>{value_text}</a>"
-            else:
-                text = f"<b>{label_text.ljust(8)} :</b> {value_text}"
-            
+            text = f"<b>{label_text.ljust(8)} :</b> {value_text}"
             lbl = QLabel(text)
-            lbl.setTextFormat(Qt.TextFormat.RichText)
-            lbl.setOpenExternalLinks(True)
             lbl.setStyleSheet("font-family: Consolas, 'Courier New', monospace; font-size: 14px;")
             details_layout.addWidget(lbl)
 
         root.addLayout(details_layout)
+
+        # Go to GitHub button
+        github_btn = QPushButton("🐙 Go to GitHub")
+        github_btn.setProperty("class", "task-action-btn")
+        github_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        github_btn.clicked.connect(self._open_github)
+        github_btn.setStyleSheet("margin-top: 12px;")
+        root.addWidget(github_btn, alignment=Qt.AlignmentFlag.AlignCenter)
 
         # Footer
         footer = QLabel("Hope you like our app! ❤️")
         footer.setAlignment(Qt.AlignmentFlag.AlignCenter)
         footer.setStyleSheet("margin-top: 16px; font-weight: bold; font-size: 14px;")
         root.addWidget(footer)
-        
+
         root.addStretch()
+
+    def _open_github(self):
+        """Open GitHub repository in browser."""
+        webbrowser.open(GITHUB_URL)

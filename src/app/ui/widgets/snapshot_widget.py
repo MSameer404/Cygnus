@@ -1,6 +1,8 @@
 # src/app/ui/widgets/snapshot_widget.py
 """Hidden widget purely for rendering the daily snapshot to an image."""
 
+import json
+import random
 from datetime import date
 from pathlib import Path
 
@@ -20,14 +22,25 @@ from app.core import stats_engine
 from app.core import task_manager
 
 
+def get_random_quote() -> dict:
+    """Load and return a random quote from quotes.json."""
+    quotes_path = Path(__file__).parent.parent.parent / "data" / "quotes.json"
+    try:
+        with open(quotes_path, "r", encoding="utf-8") as f:
+            quotes = json.load(f)
+        return random.choice(quotes) if quotes else {"text": "Stay focused and keep learning!", "author": "Cygnus"}
+    except Exception:
+        return {"text": "Stay focused and keep learning!", "author": "Cygnus"}
+
+
 class SnapshotWidget(QWidget):
     """Off-screen widget to render snapshot."""
 
-    def __init__(self, target_date: date, total_seconds: int, user_note: str = "", parent=None):
+    def __init__(self, target_date: date, total_seconds: int, parent=None):
         super().__init__(parent)
         self.target_date = target_date
         self.total_seconds = total_seconds
-        self.user_note = user_note
+        self.quote = get_random_quote()
         
         # Fixed resolution (laptop screen ratio 16:9, e.g., 1280x720)
         self.setFixedSize(1280, 720)
@@ -232,19 +245,23 @@ class SnapshotWidget(QWidget):
 
         layout.addLayout(middle_row, stretch=1)
 
-        # ---------- BOTTOM: User Note (in quotation marks) ----------
-        if self.user_note:
-            note_card = QFrame()
-            note_card.setStyleSheet("background-color: #1A1A24; border-left: 3px solid #6C5CE7; border-radius: 8px;")
-            note_layout = QVBoxLayout(note_card)
-            note_layout.setContentsMargins(15, 12, 15, 12)
+        # ---------- BOTTOM: Random Quote ----------
+        quote_card = QFrame()
+        quote_card.setStyleSheet("background-color: #1A1A24; border-left: 3px solid #6C5CE7; border-radius: 8px;")
+        quote_layout = QVBoxLayout(quote_card)
+        quote_layout.setContentsMargins(15, 12, 15, 12)
 
-            note_lbl = QLabel(f'"""{self.user_note}"""')
-            note_lbl.setStyleSheet("font-size: 14px; color: #A6ACCD; font-style: italic;")
-            note_lbl.setWordWrap(True)
-            note_layout.addWidget(note_lbl)
+        quote_text = QLabel(f'"{self.quote.get("text", "")}"')
+        quote_text.setStyleSheet("font-size: 14px; color: #A6ACCD; font-style: italic;")
+        quote_text.setWordWrap(True)
+        quote_layout.addWidget(quote_text)
 
-            layout.addWidget(note_card)
+        quote_author = QLabel(f'— {self.quote.get("author", "Unknown")}')
+        quote_author.setStyleSheet("font-size: 12px; color: #6B6B7B; margin-top: 4px;")
+        quote_author.setAlignment(Qt.AlignmentFlag.AlignRight)
+        quote_layout.addWidget(quote_author)
+
+        layout.addWidget(quote_card)
 
         # ---------- FOOTER: Made by Cygnus ----------
         footer = QHBoxLayout()

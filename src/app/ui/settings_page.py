@@ -19,6 +19,7 @@ from PyQt6.QtWidgets import (
     QMessageBox,
     QPushButton,
     QScrollArea,
+    QSplitter,
     QVBoxLayout,
     QWidget,
 )
@@ -29,6 +30,69 @@ from app.data.database import DB_PATH
 from app.data.models import DDayEvent, Subject
 
 
+class CollapsibleSection(QWidget):
+    """A collapsible section with a toggle button and content area."""
+
+    def __init__(self, title: str, parent=None):
+        super().__init__(parent)
+        self._is_expanded = False
+        self._setup_ui(title)
+
+    def _setup_ui(self, title: str):
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        # Toggle button
+        self._toggle_btn = QPushButton(f"▶ {title}")
+        self._toggle_btn.setProperty("class", "collapsible-btn")
+        self._toggle_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._toggle_btn.setStyleSheet(
+            """
+            QPushButton {
+                text-align: left;
+                padding: 12px 16px;
+                background-color: #2A2A3A;
+                border: 1px solid #3A3A50;
+                border-radius: 8px;
+                color: #EAEAF0;
+                font-weight: bold;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                background-color: #3A3A50;
+            }
+            """
+        )
+        self._toggle_btn.clicked.connect(self._toggle)
+        layout.addWidget(self._toggle_btn)
+
+        # Content container
+        self._content = QWidget()
+        self._content.setVisible(False)
+        self._content_layout = QVBoxLayout(self._content)
+        self._content_layout.setContentsMargins(12, 12, 12, 12)
+        self._content_layout.setSpacing(8)
+        layout.addWidget(self._content)
+
+    def _toggle(self):
+        self._is_expanded = not self._is_expanded
+        self._content.setVisible(self._is_expanded)
+        text = self._toggle_btn.text()
+        if self._is_expanded:
+            self._toggle_btn.setText(text.replace("▶", "▼"))
+        else:
+            self._toggle_btn.setText(text.replace("▼", "▶"))
+
+    def add_widget(self, widget):
+        """Add a widget to the collapsible content area."""
+        self._content_layout.addWidget(widget)
+
+    def add_layout(self, layout):
+        """Add a layout to the collapsible content area."""
+        self._content_layout.addLayout(layout)
+
+
 class SettingsPage(QWidget):
     """Settings page: subject CRUD, D-Day management, data export/reset."""
 
@@ -37,6 +101,14 @@ class SettingsPage(QWidget):
         self._setup_ui()
 
     def _setup_ui(self):
+        # Main horizontal layout with splitter
+        main_layout = QHBoxLayout(self)
+        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setSpacing(0)
+
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+
+        # ========== LEFT PANEL: Settings Content ==========
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -44,79 +116,94 @@ class SettingsPage(QWidget):
         content = QWidget()
         layout = QVBoxLayout(content)
         layout.setContentsMargins(40, 30, 40, 30)
-        layout.setSpacing(24)
+        layout.setSpacing(16)
 
         # ---------- Header ----------
         title = QLabel("Settings")
         title.setProperty("class", "heading")
         layout.addWidget(title)
 
-        # ========== Subject Management ==========
-        layout.addWidget(self._section_label("Subjects"))
+        # ========== Subject Management (Collapsible) ==========
+        self._subjects_section = CollapsibleSection("Subjects")
 
         self._subjects_container = QVBoxLayout()
         self._subjects_container.setSpacing(8)
-        layout.addLayout(self._subjects_container)
+        self._subjects_section.add_layout(self._subjects_container)
 
         add_subject_btn = QPushButton("+ Add Subject")
         add_subject_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         add_subject_btn.clicked.connect(self._add_subject)
-        layout.addWidget(add_subject_btn, alignment=Qt.AlignmentFlag.AlignLeft)
+        self._subjects_section.add_widget(add_subject_btn)
 
-        self._add_separator(layout)
+        layout.addWidget(self._subjects_section)
 
-        # ========== D-Day Events ==========
-        layout.addWidget(self._section_label("D-Day Events"))
+        # ========== D-Day Events (Collapsible) ==========
+        self._dday_section = CollapsibleSection("D-Day Events")
 
         self._dday_container = QVBoxLayout()
         self._dday_container.setSpacing(8)
-        layout.addLayout(self._dday_container)
+        self._dday_section.add_layout(self._dday_container)
 
         add_dday_btn = QPushButton("+ Add Event")
         add_dday_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         add_dday_btn.clicked.connect(self._add_dday)
-        layout.addWidget(add_dday_btn, alignment=Qt.AlignmentFlag.AlignLeft)
+        self._dday_section.add_widget(add_dday_btn)
 
-        self._add_separator(layout)
+        layout.addWidget(self._dday_section)
 
-        # ========== Data Management ==========
-        layout.addWidget(self._section_label("Data"))
+        # ========== Data Management (Compact) ==========
+        data_frame = QFrame()
+        data_frame.setProperty("class", "card")
+        data_layout = QVBoxLayout(data_frame)
+        data_layout.setContentsMargins(16, 12, 16, 12)
+        data_layout.setSpacing(8)
 
-        data_row = QHBoxLayout()
-        data_row.setSpacing(12)
+        data_header = QLabel("📦 Data")
+        data_header.setStyleSheet("font-weight: bold; font-size: 14px; color: #EAEAF0;")
+        data_layout.addWidget(data_header)
 
-        # Database location
-        db_info = QLabel(f"📁 Database: {DB_PATH}")
+        db_info = QLabel(f"Database: {DB_PATH}")
         db_info.setProperty("class", "caption")
         db_info.setWordWrap(True)
-        layout.addWidget(db_info)
+        data_layout.addWidget(db_info)
 
-        export_btn = QPushButton("📥 Export Sessions (CSV)")
+        data_btns = QHBoxLayout()
+        data_btns.setSpacing(8)
+
+        export_btn = QPushButton("📥 Export CSV")
         export_btn.setProperty("class", "secondary")
         export_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         export_btn.clicked.connect(self._export_csv)
-        data_row.addWidget(export_btn)
+        data_btns.addWidget(export_btn)
 
-        reset_btn = QPushButton("🗑️ Reset All Data")
+        reset_btn = QPushButton("🗑️ Reset")
         reset_btn.setProperty("class", "danger-btn")
         reset_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         reset_btn.clicked.connect(self._reset_data)
-        data_row.addWidget(reset_btn)
+        data_btns.addWidget(reset_btn)
 
-        data_row.addStretch()
-        layout.addLayout(data_row)
+        data_btns.addStretch()
+        data_layout.addLayout(data_btns)
 
-        self._add_separator(layout)
+        layout.addWidget(data_frame)
 
-        # ========== About ==========
-        layout.addWidget(self._section_label("About"))
-        about = QLabel(f"Cygnus v{CURRENT_VERSION} — A Yeolpumta-inspired study timer.\nBuilt with Python, PyQt6, and SQLModel.")
+        # ========== About & Update (Compact) ==========
+        about_frame = QFrame()
+        about_frame.setProperty("class", "card")
+        about_layout = QVBoxLayout(about_frame)
+        about_layout.setContentsMargins(16, 12, 16, 12)
+        about_layout.setSpacing(8)
+
+        about_header = QLabel(f"ℹ️ About — v{CURRENT_VERSION}")
+        about_header.setStyleSheet("font-weight: bold; font-size: 14px; color: #EAEAF0;")
+        about_layout.addWidget(about_header)
+
+        about = QLabel("Cygnus — A Yeolpumta-inspired study timer.\nBuilt with Python, PyQt6, and SQLModel.")
         about.setProperty("class", "muted")
-        layout.addWidget(about)
+        about_layout.addWidget(about)
 
-        # Update check row
         update_row = QHBoxLayout()
-        update_row.setSpacing(12)
+        update_row.setSpacing(8)
 
         self._check_update_btn = QPushButton("🔍 Check for Update")
         self._check_update_btn.setProperty("class", "secondary")
@@ -129,14 +216,138 @@ class SettingsPage(QWidget):
         update_row.addWidget(self._update_status)
         update_row.addStretch()
 
-        layout.addLayout(update_row)
+        about_layout.addLayout(update_row)
+        layout.addWidget(about_frame)
 
         layout.addStretch()
 
         scroll.setWidget(content)
-        outer = QVBoxLayout(self)
-        outer.setContentsMargins(0, 0, 0, 0)
-        outer.addWidget(scroll)
+        splitter.addWidget(scroll)
+
+        # ========== RIGHT PANEL: Notice Board Sidebar ==========
+        self._notice_sidebar = QWidget()
+        self._notice_sidebar.setMinimumWidth(300)
+        self._notice_sidebar.setMaximumWidth(400)
+        notice_layout = QVBoxLayout(self._notice_sidebar)
+        notice_layout.setContentsMargins(0, 0, 0, 0)
+        notice_layout.setSpacing(8)
+
+        # Sidebar header with toggle button
+        header = QHBoxLayout()
+        header.setContentsMargins(8, 0, 8, 0)
+
+        notice_title = QLabel("📋 Update Notices")
+        notice_title.setProperty("class", "subheading")
+        header.addWidget(notice_title)
+        header.addStretch()
+
+        # Collapse/expand button
+        self._toggle_btn = QPushButton("→")
+        self._toggle_btn.setFixedSize(28, 28)
+        self._toggle_btn.setProperty("class", "icon-btn")
+        self._toggle_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._toggle_btn.setToolTip("Collapse notice board")
+        self._toggle_btn.clicked.connect(self._toggle_notice_sidebar)
+        header.addWidget(self._toggle_btn)
+
+        notice_layout.addLayout(header)
+
+        # Notice content scroll area
+        notice_scroll = QScrollArea()
+        notice_scroll.setWidgetResizable(True)
+        notice_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+
+        notice_content = QWidget()
+        notice_content_layout = QVBoxLayout(notice_content)
+        notice_content_layout.setContentsMargins(12, 0, 12, 12)
+        notice_content_layout.setSpacing(12)
+        notice_content_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        # Notice cards
+        self._add_notice_card(
+            notice_content_layout,
+            "📸 Report Image UI Degraded",
+            "The downloaded report function may have a degraded interface, which will be fixed in a future update. For now, you can use the analytical page instead."
+        )
+
+        self._add_notice_card(
+            notice_content_layout,
+            "🔄 Check for Updates",
+            "An upgrade feature has been added so you can check for updates from the About section below."
+        )
+
+        self._add_notice_card(
+            notice_content_layout,
+            "📚 Task Section Revamp",
+            "A massive change has been made to the task section with improved functionality and UI."
+        )
+
+        self._add_notice_card(
+            notice_content_layout,
+            "💬 Send Feedback",
+            "If you encounter any problems, there's a new report section where you can send bug reports and suggestions directly to us."
+        )
+
+        self._add_notice_card(
+            notice_content_layout,
+            "🎨 UI Improvements",
+            "The UI has been improved throughout the app, and update notices will appear here in the settings at the top."
+        )
+
+        notice_content_layout.addStretch()
+        notice_scroll.setWidget(notice_content)
+        notice_layout.addWidget(notice_scroll)
+
+        splitter.addWidget(self._notice_sidebar)
+        splitter.setSizes([700, 300])
+        splitter.setCollapsible(1, False)
+
+        main_layout.addWidget(splitter, stretch=1)
+
+        # Collapsed state button (shown when sidebar is hidden)
+        self._expand_btn = QPushButton("←")
+        self._expand_btn.setFixedSize(32, 32)
+        self._expand_btn.setProperty("class", "icon-btn")
+        self._expand_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._expand_btn.setToolTip("Show notice board")
+        self._expand_btn.clicked.connect(self._toggle_notice_sidebar)
+        self._expand_btn.hide()
+        main_layout.addWidget(self._expand_btn, alignment=Qt.AlignmentFlag.AlignTop)
+
+    def _add_notice_card(self, layout, title: str, content: str):
+        """Add a notice card to the notice board."""
+        card = QFrame()
+        card.setProperty("class", "card")
+        card.setStyleSheet("""
+            QFrame {
+                background-color: #252535;
+                border-radius: 8px;
+                border-left: 3px solid #6C5CE7;
+            }
+        """)
+        card_layout = QVBoxLayout(card)
+        card_layout.setContentsMargins(12, 10, 12, 10)
+        card_layout.setSpacing(6)
+
+        title_lbl = QLabel(title)
+        title_lbl.setStyleSheet("font-weight: bold; font-size: 13px; color: #EAEAF0;")
+        card_layout.addWidget(title_lbl)
+
+        content_lbl = QLabel(content)
+        content_lbl.setStyleSheet("font-size: 12px; color: #A6ACCD; line-height: 1.4;")
+        content_lbl.setWordWrap(True)
+        card_layout.addWidget(content_lbl)
+
+        layout.addWidget(card)
+
+    def _toggle_notice_sidebar(self):
+        """Toggle notice sidebar visibility."""
+        if self._notice_sidebar.isVisible():
+            self._notice_sidebar.hide()
+            self._expand_btn.show()
+        else:
+            self._notice_sidebar.show()
+            self._expand_btn.hide()
 
     def _section_label(self, text: str) -> QLabel:
         label = QLabel(text)

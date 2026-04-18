@@ -10,7 +10,6 @@ from PyQt6.QtCore import QObject, QTimer, pyqtSignal
 class TimerState(Enum):
     IDLE = auto()
     RUNNING = auto()
-    PAUSED = auto()
 
 
 class TimerEngine(QObject):
@@ -18,7 +17,7 @@ class TimerEngine(QObject):
 
     # Signals
     tick = pyqtSignal(int)           # elapsed_seconds
-    state_changed = pyqtSignal(str)  # "idle" | "running" | "paused"
+    state_changed = pyqtSignal(str)  # "idle" | "running"
     session_finished = pyqtSignal(datetime, datetime, int)  # start, end, duration_s
 
     def __init__(self, parent=None):
@@ -53,26 +52,14 @@ class TimerEngine(QObject):
     # ---------- Controls ----------
 
     def start(self):
-        """Start or resume the timer."""
+        """Start the timer from idle state."""
         if self._state == TimerState.IDLE:
             self._elapsed_ms = 0
             self._start_time = datetime.now()
-
-        if self._state in (TimerState.IDLE, TimerState.PAUSED):
             self._state = TimerState.RUNNING
             self._last_tick_time = self._now_ms()
             self._timer.start()
             self.state_changed.emit("running")
-
-    def pause(self):
-        """Pause the timer."""
-        if self._state == TimerState.RUNNING:
-            self._timer.stop()
-            # Account for remaining time
-            now = self._now_ms()
-            self._elapsed_ms += int(now - self._last_tick_time)
-            self._state = TimerState.PAUSED
-            self.state_changed.emit("paused")
 
     def stop(self) -> tuple[datetime | None, datetime, int]:
         """Stop the timer and return (start_time, end_time, duration_seconds)."""

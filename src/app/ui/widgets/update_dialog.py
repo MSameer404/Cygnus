@@ -1,5 +1,7 @@
 # src/app/ui/widgets/update_dialog.py
-"""Update dialog showing release info and changelog."""
+"""Update dialog showing release info and download link."""
+
+import webbrowser
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
@@ -13,11 +15,11 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from app.core.update_manager import CURRENT_VERSION, pick_windows_asset
+from app.core.update_manager import CURRENT_VERSION, GITHUB_RELEASES_URL, pick_windows_asset
 
 
 class UpdateDialog(QDialog):
-    """Dialog to display available update information."""
+    """Dialog to display available update information with download link."""
 
     def __init__(
         self,
@@ -35,7 +37,7 @@ class UpdateDialog(QDialog):
     def _setup_ui(self):
         """Build the dialog UI."""
         self.setWindowTitle("Update Available")
-        self.setMinimumSize(500, 400)
+        self.setMinimumSize(500, 420)
         self.setModal(True)
 
         layout = QVBoxLayout(self)
@@ -82,16 +84,39 @@ class UpdateDialog(QDialog):
         layout.addWidget(scroll)
 
         # Check if Windows asset is available
-        has_windows_asset = pick_windows_asset(self.assets) is not None
+        windows_asset = pick_windows_asset(self.assets)
+        has_windows_asset = windows_asset is not None
 
-        # Asset info
+        # Asset info and direct link
         if has_windows_asset:
-            asset_info = QLabel("✓ Windows installer available")
+            asset_info = QLabel(f"✓ Windows installer: <b>{windows_asset['name']}</b>")
             asset_info.setStyleSheet("color: #1D9E75; font-size: 12px;")
+            layout.addWidget(asset_info)
+
+            # Direct download link
+            direct_link = QLabel(
+                f'<a href="{windows_asset["browser_download_url"]}">Direct download link</a>'
+            )
+            direct_link.setStyleSheet("color: #6C6CFF; font-size: 12px;")
+            direct_link.setOpenExternalLinks(True)
+            layout.addWidget(direct_link)
         else:
             asset_info = QLabel("✗ No Windows installer found in this release")
             asset_info.setStyleSheet("color: #FF6B6B; font-size: 12px;")
-        layout.addWidget(asset_info)
+            layout.addWidget(asset_info)
+
+        # Instructions
+        instructions = QLabel(
+            "<b>How to update:</b><br>"
+            "1. Click 'Open Download Page' below<br>"
+            "2. Download the new .exe file<br>"
+            "3. Close this app<br>"
+            "4. Run the new .exe file (your data will be preserved)<br>"
+            "5. Delete the old .exe file"
+        )
+        instructions.setStyleSheet("color: #8B8BA0; font-size: 12px; margin-top: 8px;")
+        instructions.setWordWrap(True)
+        layout.addWidget(instructions)
 
         layout.addStretch()
 
@@ -107,17 +132,21 @@ class UpdateDialog(QDialog):
 
         button_layout.addStretch()
 
-        self.update_btn = QPushButton("Update Now")
-        self.update_btn.setProperty("class", "task-action-btn")
-        self.update_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.update_btn.setEnabled(has_windows_asset)
-        self.update_btn.clicked.connect(self.accept)
-        button_layout.addWidget(self.update_btn)
+        self.open_page_btn = QPushButton("Open Download Page")
+        self.open_page_btn.setProperty("class", "task-action-btn")
+        self.open_page_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.open_page_btn.clicked.connect(self._open_download_page)
+        button_layout.addWidget(self.open_page_btn)
 
         layout.addLayout(button_layout)
 
+    def _open_download_page(self):
+        """Open the GitHub releases page in browser."""
+        webbrowser.open(GITHUB_RELEASES_URL)
+        self.accept()
+
     def accept(self):
-        """Accept the dialog to start update."""
+        """Accept the dialog."""
         super().accept()
 
     def reject(self):
