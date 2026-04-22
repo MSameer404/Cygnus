@@ -9,7 +9,7 @@ from pathlib import Path
 
 from sqlmodel import Session, SQLModel, create_engine, select
 
-from app.data.models import AppSetting, Subject
+from app.data.models import AppSetting, Subject, SyllabusChapter, SyllabusMaterial, SyllabusProgress
 
 # ---------- Database path ----------
 

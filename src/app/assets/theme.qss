@@ -355,6 +355,8 @@ QComboBox:focus {
 
 QComboBox::drop-down {
     border: none;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
     width: 24px;
 }
 
@@ -887,4 +889,195 @@ QPushButton.segment-btn:checked {
     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
         stop:0 #7C3AED, stop:1 #06B6D4);
     color: #FFFFFF;
+}
+
+/* ============================================================
+   Syllabus Tracker
+   ============================================================ */
+
+/* Picker dropdown button in header */
+QPushButton#syllabusPickerBtn {
+    background-color: #1E1E30;
+    color: #C4B5FD;
+    border: 1px solid #3D3D60;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: bold;
+    min-width: 120px;
+}
+QPushButton#syllabusPickerBtn:hover {
+    background-color: #2A2A42;
+    border-color: #7C3AED;
+    color: #EAEAF0;
+}
+
+/* Gear button */
+QPushButton#syllabusGearBtn {
+    background-color: transparent;
+    color: #8B8BA0;
+    border: 1px solid #2D2D45;
+    border-radius: 8px;
+    font-size: 16px;
+}
+QPushButton#syllabusGearBtn:hover {
+    background-color: rgba(124, 58, 237, 0.15);
+    border-color: #7C3AED;
+    color: #C4B5FD;
+}
+
+/* Small action buttons (+ Chapter, + Material) */
+QPushButton.syllabus-action-btn {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+        stop:0 #7C3AED, stop:1 #06B6D4);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 7px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: bold;
+}
+QPushButton.syllabus-action-btn:hover {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+        stop:0 #8B5CF6, stop:1 #22D3EE);
+}
+QPushButton.syllabus-action-btn:disabled {
+    background-color: #252535;
+    color: #8B8BA0;
+}
+
+/* Delete row button (✕) in edit mode */
+QPushButton.syllabus-del-row-btn {
+    background-color: rgba(244, 63, 94, 0.15);
+    color: #F43F5E;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+}
+QPushButton.syllabus-del-row-btn:hover {
+    background-color: rgba(244, 63, 94, 0.32);
+}
+
+/* Delete material column button */
+QPushButton.syllabus-del-mat-btn {
+    background-color: rgba(245, 158, 11, 0.15);
+    color: #F59E0B;
+    border: none;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 3px 6px;
+}
+QPushButton.syllabus-del-mat-btn:hover {
+    background-color: rgba(245, 158, 11, 0.32);
+}
+
+/* Move material column button (arrows) */
+QPushButton.syllabus-move-btn {
+    background-color: rgba(6, 182, 212, 0.15);
+    color: #06B6D4;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 0px;
+}
+QPushButton.syllabus-move-btn:hover {
+    background-color: rgba(6, 182, 212, 0.32);
+}
+
+/* Delete button in settings dialog subject list */
+QPushButton.syllabus-del-btn {
+    background-color: rgba(244, 63, 94, 0.12);
+    color: #F43F5E;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+}
+QPushButton.syllabus-del-btn:hover {
+    background-color: rgba(244, 63, 94, 0.28);
+}
+
+/* Table widget */
+QTableWidget#syllabusTable {
+    background-color: #0F0F14;
+    alternate-background-color: #141420;
+    border: none;
+    gridline-color: transparent;
+    color: #EAEAF0;
+    selection-background-color: transparent;
+}
+QTableWidget#syllabusTable QHeaderView::section {
+    background-color: #1A1A28;
+    color: #C4B5FD;
+    border: none;
+    border-bottom: 2px solid #2D2D45;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+QTableWidget#syllabusTable QHeaderView::section:hover {
+    background-color: #22203A;
+}
+
+/* Chapter name inline edit */
+QLineEdit#syllabusChapterEdit {
+    background-color: transparent;
+    border: none;
+    border-radius: 0px;
+    padding: 4px 10px;
+    color: #F0F0FA;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+QLineEdit#syllabusChapterEdit:read-only {
+    color: #F0F0FA;
+    background-color: transparent;
+    border: none;
+}
+QLineEdit#syllabusChapterEdit:focus {
+    background-color: rgba(6, 182, 212, 0.07);
+    border-bottom: 2px solid #06B6D4;
+    color: #FFFFFF;
+}
+
+/* Settings dialog header */
+QWidget#syllabusSettingsHeader {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+        stop:0 #1A0A2E, stop:1 #0D1A2E);
+}
+
+/* Settings dialog subject rows */
+QFrame#syllabusSubjectRow {
+    background-color: #1A1A28;
+    border: 1px solid #2D2D45;
+    border-radius: 8px;
+}
+QFrame#syllabusSubjectRow:hover {
+    border-color: #4C3D8A;
+}
+
+/* Settings dialog add area */
+QFrame#syllabusAddArea {
+    background-color: #141420;
+    border-top: 1px solid #2D2D45;
+}
+
+/* Priority combo colors */
+QComboBox.syllabus-priority-high {
+    color: #FB7185;
+    border-color: rgba(244, 63, 94, 0.5);
+}
+QComboBox.syllabus-priority-medium {
+    color: #FCD34D;
+    border-color: rgba(245, 158, 11, 0.5);
+}
+QComboBox.syllabus-priority-low {
+    color: #A0A0B8;
+    border-color: rgba(139, 139, 160, 0.4);
 }

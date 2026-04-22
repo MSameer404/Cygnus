@@ -6,6 +6,9 @@ from typing import Optional
 
 from sqlmodel import Field, SQLModel
 
+# Priority ordering helper (used for sorting chapters)
+PRIORITY_ORDER = {"High": 0, "Medium": 1, "Low": 2}
+
 
 class Subject(SQLModel, table=True):
     """A study subject (e.g., Physics, Chemistry, Math)."""
@@ -68,3 +71,43 @@ class AppSetting(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     key: str = Field(unique=True, index=True)
     value: str = Field(default="")
+
+
+# ──────────────────────────────────────────────
+# Syllabus Tracker tables
+# ──────────────────────────────────────────────
+
+class SyllabusChapter(SQLModel, table=True):
+    """One chapter row inside a subject's syllabus table."""
+
+    __tablename__ = "syllabus_chapters"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    subject_id: int = Field(foreign_key="subjects.id", index=True)
+    name: str = Field(default="")
+    priority: str = Field(default="Medium")  # High | Medium | Low
+    sort_order: int = Field(default=0)
+    created_at: datetime = Field(default_factory=datetime.now)
+
+
+class SyllabusMaterial(SQLModel, table=True):
+    """A material column definition for a subject (max 4 per subject)."""
+
+    __tablename__ = "syllabus_materials"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    subject_id: int = Field(foreign_key="subjects.id", index=True)
+    name: str = Field(default="Material")
+    col_index: int = Field(default=0)  # 0-3
+    created_at: datetime = Field(default_factory=datetime.now)
+
+
+class SyllabusProgress(SQLModel, table=True):
+    """Checkbox state for a (chapter, material) pair."""
+
+    __tablename__ = "syllabus_progress"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    chapter_id: int = Field(foreign_key="syllabus_chapters.id", index=True)
+    material_id: int = Field(foreign_key="syllabus_materials.id", index=True)
+    is_done: bool = Field(default=False)
