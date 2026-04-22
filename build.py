@@ -10,7 +10,7 @@ def main():
     main_script = "src/app/main.py"
     
     # Create version.txt for bundled executable
-    version = "2.0.0"  # Must match pyproject.toml
+    version = "2.1.0"  # Must match pyproject.toml
     with open("version.txt", "w", encoding="utf-8") as f:
         f.write(version)
     print(f"Created version.txt with version {version}")
@@ -35,6 +35,7 @@ def main():
         "--hidden-import=sqlmodel",  # Ensure sqlmodel is bundled
         "--hidden-import=pydantic",  # Ensure pydantic is bundled
         "--hidden-import=sqlalchemy",# Ensure sqlalchemy is bundled
+        "--hidden-import=pypresence",# Ensure pypresence is bundled
         # Hide output from unneeded PyInstaller imports/logs to keep console clean, but leave standard output.
         "--log-level=WARN",
         main_script            # Entry point

@@ -41,7 +41,33 @@ class DashboardPage(QWidget):
         self.refresh()
 
     def _setup_ui(self):
-        # Scrollable content
+        outer_layout = QVBoxLayout(self)
+        outer_layout.setContentsMargins(0, 0, 0, 0)
+        outer_layout.setSpacing(0)
+
+        # ---------- Header Bar (consistent with StudyPage) ----------
+        header = QWidget()
+        header.setObjectName("pageHeader")
+        header.setFixedHeight(60)
+        header_layout = QHBoxLayout(header)
+        header_layout.setContentsMargins(20, 0, 20, 0)
+        header_layout.setSpacing(16)
+
+        greeting = QLabel("Dashboard")
+        greeting.setProperty("class", "heading")
+        header_layout.addWidget(greeting)
+        header_layout.addStretch()
+
+        outer_layout.addWidget(header)
+
+        # Horizontal separator line below header (aligned with sidebar profile level)
+        horizontal_line = QFrame()
+        horizontal_line.setObjectName("headerSeparator")
+        horizontal_line.setFrameShape(QFrame.Shape.HLine)
+        horizontal_line.setFixedHeight(1)
+        outer_layout.addWidget(horizontal_line)
+
+        # ---------- Scrollable Content ----------
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -50,17 +76,6 @@ class DashboardPage(QWidget):
         self._main_layout = QVBoxLayout(content)
         self._main_layout.setContentsMargins(40, 30, 40, 30)
         self._main_layout.setSpacing(24)
-
-        # ---------- Header ----------
-        header = QHBoxLayout()
-        today_str = date.today().strftime("%A, %B %d")
-
-        greeting = QLabel(f"📖  {today_str}")
-        greeting.setProperty("class", "heading")
-        header.addWidget(greeting)
-        header.addStretch()
-
-        self._main_layout.addLayout(header)
 
         # ---------- Stats Row ----------
         stats_row = QHBoxLayout()
@@ -121,7 +136,7 @@ class DashboardPage(QWidget):
         self._quote_label = QLabel("Loading quote...")
         self._quote_label.setWordWrap(True)
         self._quote_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._quote_label.setStyleSheet("font-size: 18px; font-style: italic; color: #E0E0E0;")
+        self._quote_label.setStyleSheet("font-size: 28px; font-style: italic; color: #E0E0E0; font-family: Georgia, 'Palatino Linotype', serif; line-height: 1.5;")
         
         self._author_label = QLabel("")
         self._author_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
@@ -136,10 +151,7 @@ class DashboardPage(QWidget):
         self._main_layout.addStretch()
 
         scroll.setWidget(content)
-
-        outer = QVBoxLayout(self)
-        outer.setContentsMargins(0, 0, 0, 0)
-        outer.addWidget(scroll)
+        outer_layout.addWidget(scroll, stretch=1)
 
     def _make_stat_card(self, title: str, value: str, accent: str) -> QFrame:
         card = QFrame()
@@ -178,7 +190,7 @@ class DashboardPage(QWidget):
         streak_label = self._streak_card.findChild(QLabel, "stat_streak")
         if streak_label:
             streak = stats_engine.get_streak()
-            streak_label.setText(f"{streak} day{'s' if streak != 1 else ''}")
+            streak_label.setText(f"🔥 {streak} day{'s' if streak != 1 else ''}")
 
         # Refresh timeline
         self._timeline.set_date(today)

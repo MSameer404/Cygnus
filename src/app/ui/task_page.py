@@ -6,7 +6,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Any
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtWidgets import (
     QDialog,
     QFrame,
@@ -39,6 +39,9 @@ class TaskPage(QWidget):
         self._tasks: list[dict[str, Any]] = []
         self._list_filter = self._FILTER_ALL
         self._filter_buttons: dict[str, QPushButton] = {}
+        # Widget pools to prevent flickering
+        self._work_row_pool: dict[int, QFrame] = {}
+        self._task_card_pool: dict[int, QFrame] = {}
         self._setup_ui()
         app_events.data_reset.connect(self._on_data_reset)
 
@@ -52,21 +55,40 @@ class TaskPage(QWidget):
         self.setMinimumSize(900, 600)
 
         outer = QVBoxLayout(self)
-        outer.setContentsMargins(40, 30, 40, 30)
-        outer.setSpacing(16)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(0)
 
-        # Header
-        header = QHBoxLayout()
-        title = QLabel("Task list")
-        title.setProperty("class", "task-page-title")
-        header.addWidget(title)
-        header.addStretch()
+        # ---------- Header Bar (consistent with other pages) ----------
+        header = QWidget()
+        header.setObjectName("pageHeader")
+        header.setFixedHeight(60)
+        header_layout = QHBoxLayout(header)
+        header_layout.setContentsMargins(20, 0, 20, 0)
+        header_layout.setSpacing(16)
+
+        title = QLabel("Task Tracker")
+        title.setProperty("class", "heading")
+        header_layout.addWidget(title)
+        header_layout.addStretch()
         create_btn = QPushButton("+ Create task")
         create_btn.setProperty("class", "task-create-btn")
         create_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         create_btn.clicked.connect(self._open_create_dialog)
-        header.addWidget(create_btn)
-        outer.addLayout(header)
+        header_layout.addWidget(create_btn)
+        outer.addWidget(header)
+
+        # Horizontal separator line below header (aligned with sidebar profile level)
+        horizontal_line = QFrame()
+        horizontal_line.setObjectName("headerSeparator")
+        horizontal_line.setFrameShape(QFrame.Shape.HLine)
+        horizontal_line.setFixedHeight(1)
+        outer.addWidget(horizontal_line)
+
+        # ---------- Content ----------
+        content = QWidget()
+        content_layout = QVBoxLayout(content)
+        content_layout.setContentsMargins(40, 30, 40, 30)
+        content_layout.setSpacing(16)
 
         # Stats row
         stats = QHBoxLayout()
@@ -84,7 +106,7 @@ class TaskPage(QWidget):
             self._stat_total,
         ):
             stats.addWidget(w)
-        outer.addLayout(stats)
+        content_layout.addLayout(stats)
 
         # Split panels
         split = QHBoxLayout()
@@ -163,7 +185,8 @@ class TaskPage(QWidget):
         list_outer.addWidget(self._task_scroll, stretch=1)
         split.addWidget(self._list_frame, stretch=6)
 
-        outer.addLayout(split, stretch=1)
+        content_layout.addLayout(split, stretch=1)
+        outer.addWidget(content, stretch=1)
 
     def _make_stat_card(self, caption: str, value_class: str) -> QFrame:
         fr = QFrame()
@@ -187,7 +210,8 @@ class TaskPage(QWidget):
 
     def _on_filter_clicked(self, key: str):
         self._set_filter_active(key)
-        self._render_task_list()
+        # Defer render to let button check state settle visually
+        QTimer.singleShot(0, self._render_task_list)
 
     def _open_create_dialog(self):
         dlg = CreateTaskDialog(self)
@@ -269,24 +293,55 @@ class TaskPage(QWidget):
             item = layout.takeAt(0)
             w = item.widget()
             if w is not None:
-                w.deleteLater()
+                w.hide()
 
     def _render_work_table(self):
-        self._clear_layout(self._work_layout)
         rows = [
             r
             for r in self._tasks
             if r["in_work"] and not r["is_completed"]
         ]
+        active_ids = {r["id"] for r in rows}
+
+        # Hide widgets for tasks no longer in work table
+        for tid, widget in list(self._work_row_pool.items()):
+            if tid not in active_ids:
+                widget.hide()
+
         if not rows:
-            empty = QLabel("Nothing in progress. Add a task from the list.")
-            empty.setProperty("class", "muted")
-            empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            empty.setWordWrap(True)
-            self._work_layout.addWidget(empty)
-            return
-        for row in rows:
-            self._work_layout.addWidget(self._make_work_row(row))
+            # Check if empty label already exists
+            has_empty = False
+            for i in range(self._work_layout.count()):
+                w = self._work_layout.itemAt(i).widget()
+                if w and w.objectName() == "work_empty":
+                    has_empty = True
+                    w.show()
+                    break
+            if not has_empty:
+                empty = QLabel("Nothing in progress. Add a task from the list.")
+                empty.setObjectName("work_empty")
+                empty.setProperty("class", "muted")
+                empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                empty.setWordWrap(True)
+                self._work_layout.addWidget(empty)
+        else:
+            # Hide empty label if exists
+            for i in range(self._work_layout.count()):
+                w = self._work_layout.itemAt(i).widget()
+                if w and w.objectName() == "work_empty":
+                    w.hide()
+                    break
+            # Reuse or create work row widgets
+            for i, row in enumerate(rows):
+                tid = row["id"]
+                if tid in self._work_row_pool:
+                    widget = self._work_row_pool[tid]
+                    self._update_work_row(widget, row)
+                else:
+                    widget = self._make_work_row(row)
+                    self._work_row_pool[tid] = widget
+                    self._work_layout.addWidget(widget)
+                widget.show()
 
     def _make_work_row(self, row: dict[str, Any]) -> QFrame:
         card = QFrame()
@@ -295,28 +350,58 @@ class TaskPage(QWidget):
         h.setContentsMargins(8, 6, 10, 6)
         mid = QVBoxLayout()
         mid.setSpacing(2)
-        t = QLabel(row["title"])
-        t.setWordWrap(True)
-        t.setProperty("class", "task-work-title")
-        mid.addWidget(t)
-        sub = QLabel(
-            f"{row['subject_name'] or '—'} · Due {row['target_date'].strftime('%Y-%m-%d')}"
-        )
-        sub.setProperty("class", "task-meta")
-        mid.addWidget(sub)
+
+        title_lbl = QLabel()
+        title_lbl.setObjectName("title")
+        title_lbl.setWordWrap(True)
+        title_lbl.setProperty("class", "task-work-title")
+        mid.addWidget(title_lbl)
+
+        sub_lbl = QLabel()
+        sub_lbl.setObjectName("sub")
+        sub_lbl.setProperty("class", "task-meta")
+        mid.addWidget(sub_lbl)
+
         h.addLayout(mid, stretch=1)
+
         done_btn = QPushButton("Mark Done")
+        done_btn.setObjectName("done_btn")
         done_btn.setProperty("class", "task-secondary-btn")
         done_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        tid = row["id"]
-        done_btn.clicked.connect(lambda _=False, i=tid: self._mark_done(i))
         h.addWidget(done_btn)
+
         rm_btn = QPushButton("Remove")
+        rm_btn.setObjectName("rm_btn")
         rm_btn.setProperty("class", "task-ghost-btn")
         rm_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        rm_btn.clicked.connect(lambda _=False, i=tid: self._remove_from_work(i))
         h.addWidget(rm_btn)
+
+        self._update_work_row(card, row)
         return card
+
+    def _update_work_row(self, card: QFrame, row: dict[str, Any]) -> None:
+        title_lbl = card.findChild(QLabel, "title")
+        sub_lbl = card.findChild(QLabel, "sub")
+        done_btn = card.findChild(QPushButton, "done_btn")
+        rm_btn = card.findChild(QPushButton, "rm_btn")
+
+        if title_lbl:
+            title_lbl.setText(row["title"])
+        if sub_lbl:
+            sub_lbl.setText(
+                f"{row['subject_name'] or '—'} · Due {row['target_date'].strftime('%Y-%m-%d')}"
+            )
+
+        tid = row["id"]
+        if done_btn:
+            done_btn.clicked.disconnect() if done_btn.receivers(done_btn.clicked) else None
+            done_btn.clicked.connect(lambda _=False, i=tid: self._mark_done(i))
+        if rm_btn:
+            try:
+                rm_btn.clicked.disconnect()
+            except:
+                pass
+            rm_btn.clicked.connect(lambda _=False, i=tid: self._remove_from_work(i))
 
     def _mark_done(self, task_id: int):
         task_manager.update_task_fields(
@@ -347,45 +432,77 @@ class TaskPage(QWidget):
         return True
 
     def _render_task_list(self):
-        self._clear_layout(self._task_layout)
         rows = [r for r in self._tasks if self._row_matches_list_filter(r)]
+        active_ids = {r["id"] for r in rows}
+
+        # Hide widgets for tasks no longer matching filter
+        for tid, widget in list(self._task_card_pool.items()):
+            if tid not in active_ids:
+                widget.hide()
+
         if not rows:
-            empty = QLabel("No tasks here.")
-            empty.setProperty("class", "muted")
-            empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self._task_layout.addWidget(empty)
-            return
-        for row in rows:
-            self._task_layout.addWidget(self._make_task_card(row))
+            # Check if empty label already exists
+            has_empty = False
+            for i in range(self._task_layout.count()):
+                w = self._task_layout.itemAt(i).widget()
+                if w and w.objectName() == "list_empty":
+                    has_empty = True
+                    w.show()
+                    break
+            if not has_empty:
+                empty = QLabel("No tasks here.")
+                empty.setObjectName("list_empty")
+                empty.setProperty("class", "muted")
+                empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                self._task_layout.addWidget(empty)
+        else:
+            # Hide empty label if exists
+            for i in range(self._task_layout.count()):
+                w = self._task_layout.itemAt(i).widget()
+                if w and w.objectName() == "list_empty":
+                    w.hide()
+                    break
+            # Reuse or create task card widgets
+            for i, row in enumerate(rows):
+                tid = row["id"]
+                if tid in self._task_card_pool:
+                    widget = self._task_card_pool[tid]
+                    self._update_task_card(widget, row)
+                else:
+                    widget = self._make_task_card(row)
+                    self._task_card_pool[tid] = widget
+                    self._task_layout.addWidget(widget)
+                widget.show()
 
     def _make_task_card(self, row: dict[str, Any]) -> QFrame:
         card = QFrame()
         card.setProperty("class", "task-task-card card")
-        # Horizontal layout: left info | middle pills | right actions
         body = QHBoxLayout(card)
         body.setContentsMargins(12, 10, 12, 10)
         body.setSpacing(16)
 
         # Left: Title and Subject
         left_widget = QWidget()
+        left_widget.setObjectName("left_widget")
         left = QVBoxLayout(left_widget)
         left.setSpacing(4)
         left.setContentsMargins(0, 0, 0, 0)
 
-        title = QLabel(row["title"].title())
+        title = QLabel()
+        title.setObjectName("title")
         title.setWordWrap(True)
         title.setStyleSheet("font-size: 15px; font-weight: 500; color: #EAEAF0;")
         left.addWidget(title)
 
-        subj_name = row["subject_name"] or "No subject"
-        subj = QLabel(subj_name)
-        subj.setStyleSheet(f"font-size: 12px; color: {row['subject_color']}; font-weight: 500;")
+        subj = QLabel()
+        subj.setObjectName("subject")
         left.addWidget(subj)
         left_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         body.addWidget(left_widget, stretch=1)
 
-        # Middle: Priority pill + Date + Status pill (in a horizontal row)
+        # Middle: Priority pill + Date + Status pill
         middle_widget = QWidget()
+        middle_widget.setObjectName("middle_widget")
         middle = QHBoxLayout(middle_widget)
         middle.setSpacing(8)
         middle.setContentsMargins(0, 0, 0, 0)
@@ -393,26 +510,23 @@ class TaskPage(QWidget):
         middle_widget.setMinimumWidth(240)
         middle_widget.setMaximumWidth(280)
 
-        # Priority pill (fixed width for alignment)
-        pr = QLabel(row["priority"].upper())
-        pr.setProperty("class", f"task-pill-priority-{row['priority']}")
+        pr = QLabel()
+        pr.setObjectName("priority")
         pr.setMinimumWidth(50)
         pr.setMaximumWidth(60)
         pr.setAlignment(Qt.AlignmentFlag.AlignCenter)
         middle.addWidget(pr)
 
-        # Due date (fixed width for alignment)
-        due_str = row["target_date"].strftime("%d %b %Y")
-        due = QLabel(due_str)
+        due = QLabel()
+        due.setObjectName("due_date")
         due.setStyleSheet("font-size: 12px; color: #8B8BA0;")
         due.setMinimumWidth(80)
         due.setMaximumWidth(90)
         due.setAlignment(Qt.AlignmentFlag.AlignCenter)
         middle.addWidget(due)
 
-        # Status pill (fixed width for alignment)
-        st = QLabel(self._status_text(row).upper())
-        st.setProperty("class", f"task-pill-status-{self._status_slug(row)}")
+        st = QLabel()
+        st.setObjectName("status")
         st.setMinimumWidth(90)
         st.setMaximumWidth(100)
         st.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -420,8 +534,9 @@ class TaskPage(QWidget):
 
         body.addWidget(middle_widget)
 
-        # Right: Action buttons (consistent zone, fixed width for alignment)
+        # Right: Action buttons
         right_widget = QWidget()
+        right_widget.setObjectName("right_widget")
         right = QHBoxLayout(right_widget)
         right.setSpacing(8)
         right.setContentsMargins(0, 0, 0, 0)
@@ -429,33 +544,75 @@ class TaskPage(QWidget):
         right_widget.setMinimumWidth(80)
         right_widget.setMaximumWidth(80)
 
-        tid = row["id"]
-        can_work = not row["is_completed"] and not row["is_dumped"] and not row["in_work"]
-        can_dump = not row["is_dumped"] and not row["is_completed"]
-
-        # Always create buttons (to maintain consistent width), but hide/show as needed
         add_btn = QPushButton("▶")
+        add_btn.setObjectName("add_btn")
         add_btn.setProperty("class", "task-action-btn")
         add_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         add_btn.setFixedWidth(36)
         add_btn.setFixedHeight(32)
         add_btn.setToolTip("Add to workspace")
-        add_btn.clicked.connect(lambda _=False, i=tid: self._add_to_work(i))
-        add_btn.setVisible(can_work)
         right.addWidget(add_btn)
 
         dump_btn = QPushButton("🗑️")
+        dump_btn.setObjectName("dump_btn")
         dump_btn.setProperty("class", "task-dump-btn")
         dump_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         dump_btn.setFixedWidth(36)
         dump_btn.setFixedHeight(32)
         dump_btn.setToolTip("Move to dump")
-        dump_btn.clicked.connect(lambda _=False, i=tid: self._move_to_dump(i))
-        dump_btn.setVisible(can_dump)
         right.addWidget(dump_btn)
 
         body.addWidget(right_widget)
+
+        self._update_task_card(card, row)
         return card
+
+    def _update_task_card(self, card: QFrame, row: dict[str, Any]) -> None:
+        title = card.findChild(QLabel, "title")
+        subj = card.findChild(QLabel, "subject")
+        pr = card.findChild(QLabel, "priority")
+        due = card.findChild(QLabel, "due_date")
+        st = card.findChild(QLabel, "status")
+        add_btn = card.findChild(QPushButton, "add_btn")
+        dump_btn = card.findChild(QPushButton, "dump_btn")
+
+        if title:
+            title.setText(row["title"].title())
+        if subj:
+            subj_name = row["subject_name"] or "No subject"
+            subj.setText(subj_name)
+            subj.setStyleSheet(f"font-size: 12px; color: {row['subject_color']}; font-weight: 500;")
+        if pr:
+            pr.setText(row["priority"].upper())
+            pr.setProperty("class", f"task-pill-priority-{row['priority']}")
+            pr.style().unpolish(pr)
+            pr.style().polish(pr)
+        if due:
+            due.setText(row["target_date"].strftime("%d %b %Y"))
+        if st:
+            st.setText(self._status_text(row).upper())
+            st.setProperty("class", f"task-pill-status-{self._status_slug(row)}")
+            st.style().unpolish(st)
+            st.style().polish(st)
+
+        tid = row["id"]
+        can_work = not row["is_completed"] and not row["is_dumped"] and not row["in_work"]
+        can_dump = not row["is_dumped"] and not row["is_completed"]
+
+        if add_btn:
+            try:
+                add_btn.clicked.disconnect()
+            except:
+                pass
+            add_btn.clicked.connect(lambda _=False, i=tid: self._add_to_work(i))
+            add_btn.setVisible(can_work)
+        if dump_btn:
+            try:
+                dump_btn.clicked.disconnect()
+            except:
+                pass
+            dump_btn.clicked.connect(lambda _=False, i=tid: self._move_to_dump(i))
+            dump_btn.setVisible(can_dump)
 
     def _status_slug(self, row: dict[str, Any]) -> str:
         if row["is_dumped"]:
@@ -485,11 +642,19 @@ class TaskPage(QWidget):
             self._refresh()
 
     def _refresh(self):
-        self._rebuild_cache()
-        self._update_stats()
-        self._render_work_table()
-        self._render_task_list()
+        self.setUpdatesEnabled(False)
+        try:
+            self._rebuild_cache()
+            self._update_stats()
+            self._render_work_table()
+            self._render_task_list()
+        finally:
+            self.setUpdatesEnabled(True)
+            self.update()
 
     def showEvent(self, event):
         super().showEvent(event)
-        self._refresh()
+        # Only refresh on first show to avoid flickering when switching sections
+        if not getattr(self, "_has_shown_once", False):
+            self._has_shown_once = True
+            self._refresh()

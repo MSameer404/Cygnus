@@ -39,7 +39,7 @@ def get_current_version() -> str:
         pass
     
     # Hardcoded fallback version (must be updated manually for each release)
-    return "2.0.0"
+    return "2.1.0"
 
 
 CURRENT_VERSION = get_current_version()

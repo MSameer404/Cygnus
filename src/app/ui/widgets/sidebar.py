@@ -4,7 +4,7 @@
 from pathlib import Path
 from PyQt6.QtCore import pyqtSignal, Qt, QSize
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QVBoxLayout, QPushButton, QWidget, QSpacerItem, QSizePolicy, QLabel
+from PyQt6.QtWidgets import QFrame, QVBoxLayout, QPushButton, QWidget, QSpacerItem, QSizePolicy, QLabel, QHBoxLayout
 
 from app.core.update_manager import CURRENT_VERSION
 
@@ -14,16 +14,15 @@ class Sidebar(QWidget):
 
     page_changed = pyqtSignal(int)
     profile_clicked = pyqtSignal()
-    contact_clicked = pyqtSignal()
-    report_clicked = pyqtSignal()
 
-    # Unicode icons for each page
+    # Icon files for each page (stored in assets/icons/)
     PAGES = [
-        ("🏠", "Dashboard"),
-        ("⏱️", "Timer"),
-        ("📊", "Statistics"),
-        ("✅", "Tasks"),
-        ("⚙️", "Settings"),
+        ("home.ico", "Dashboard"),
+        ("time.ico", "Time Tracker"),
+        ("task.ico", "Task Tracker"),
+        ("syllabus.ico", "Syllabus"),
+        ("test.ico", "Test Tracker"),
+        ("setting.ico", "Settings"),
     ]
 
     def __init__(self, parent=None):
@@ -36,8 +35,16 @@ class Sidebar(QWidget):
 
     def _setup_ui(self):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(8, 16, 8, 16)
-        layout.setSpacing(4)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        # ---------- Header Section (60px) ----------
+        header = QWidget()
+        header.setFixedHeight(60)
+        header.setObjectName("sidebarHeader")
+        header_layout = QVBoxLayout(header)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+        header_layout.setSpacing(0)
 
         # App logo / brand — clickable, opens profile
         brand = QPushButton()
@@ -45,6 +52,7 @@ class Sidebar(QWidget):
         brand.setToolTip("View Profile")
         brand.setCursor(Qt.CursorShape.PointingHandCursor)
         brand.clicked.connect(self.profile_clicked.emit)
+        brand.setFixedSize(64, 60)
         
         assets_dir = Path(__file__).parent.parent.parent / "assets"
         icon_ico = assets_dir / "logo.ico"
@@ -52,56 +60,67 @@ class Sidebar(QWidget):
 
         if icon_ico.exists():
             brand.setIcon(QIcon(str(icon_ico)))
-            brand.setIconSize(QSize(28, 28))
+            brand.setIconSize(QSize(32, 32))
             brand.setStyleSheet("border: none; background: transparent;")
         elif icon_png.exists():
             brand.setIcon(QIcon(str(icon_png)))
-            brand.setIconSize(QSize(28, 28))
+            brand.setIconSize(QSize(32, 32))
             brand.setStyleSheet("border: none; background: transparent;")
         else:
             brand.setText("📖")
-            brand.setStyleSheet("font-size: 22px; border: none; background: transparent;")
-        layout.addWidget(brand, alignment=Qt.AlignmentFlag.AlignCenter)
+            brand.setStyleSheet("font-size: 24px; border: none; background: transparent;")
+        header_layout.addWidget(brand, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(header)
 
-        layout.addSpacing(16)
+        # Horizontal separator line below header
+        horizontal_line = QFrame()
+        horizontal_line.setObjectName("headerSeparator")
+        horizontal_line.setFrameShape(QFrame.Shape.HLine)
+        horizontal_line.setFixedHeight(1)
+        layout.addWidget(horizontal_line)
+
+        # ---------- Navigation Section ----------
+        nav_container = QWidget()
+        nav_layout = QVBoxLayout(nav_container)
+        nav_layout.setContentsMargins(8, 12, 8, 16)
+        nav_layout.setSpacing(12)
 
         # Navigation buttons
-        for i, (icon, tooltip) in enumerate(self.PAGES):
-            btn = QPushButton(icon)
+        icons_dir = assets_dir / "icons"
+        for i, (icon_file, tooltip) in enumerate(self.PAGES):
+            btn = QPushButton()
             btn.setProperty("class", "sidebar-btn")
             btn.setToolTip(tooltip)
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setFixedSize(48, 48)
+
+            icon_path = icons_dir / icon_file
+            if icon_path.exists():
+                btn.setIcon(QIcon(str(icon_path)))
+                btn.setIconSize(QSize(32, 32))
+                btn.setStyleSheet("QPushButton { border: none; background: transparent; text-align: center; padding: 0px; }")
+            else:
+                # Fallback to emoji if icon file missing
+                emoji_fallback = ["🏠", "⏱️", "✅", "📖", "⚙️"][i]
+                btn.setText(emoji_fallback)
+                btn.setStyleSheet("QPushButton { font-size: 24px; border: none; background: transparent; text-align: center; padding: 0px; }")
+
             btn.clicked.connect(lambda checked, idx=i: self._on_click(idx))
-            layout.addWidget(btn, alignment=Qt.AlignmentFlag.AlignCenter)
+            nav_layout.addWidget(btn, alignment=Qt.AlignmentFlag.AlignCenter)
             self._buttons.append(btn)
 
         # Push remaining space to bottom
-        layout.addItem(
+        nav_layout.addItem(
             QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         )
-
-        # Report button
-        report_btn = QPushButton("�")
-        report_btn.setProperty("class", "sidebar-btn")
-        report_btn.setToolTip("Send Feedback")
-        report_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        report_btn.clicked.connect(self.report_clicked.emit)
-        layout.addWidget(report_btn, alignment=Qt.AlignmentFlag.AlignCenter)
-
-        # Contact Us button
-        contact_btn = QPushButton("📧")
-        contact_btn.setProperty("class", "sidebar-btn")
-        contact_btn.setToolTip("Contact Us")
-        contact_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        contact_btn.clicked.connect(self.contact_clicked.emit)
-        layout.addWidget(contact_btn, alignment=Qt.AlignmentFlag.AlignCenter)
 
         # Version label
         version_label = QLabel(f"v{CURRENT_VERSION}")
         version_label.setStyleSheet("color: #FF6B6B; font-size: 11px; margin-top: 6px;")
         version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(version_label, alignment=Qt.AlignmentFlag.AlignCenter)
+        nav_layout.addWidget(version_label, alignment=Qt.AlignmentFlag.AlignCenter)
 
+        layout.addWidget(nav_container, stretch=1)
         self._update_active()
 
     def _on_click(self, index: int):

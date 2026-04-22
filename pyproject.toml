@@ -1,12 +1,13 @@
 [project]
 name = "cygnus"
-version = "2.0.0"
+version = "2.1.0"
 description = "Cygnus — A Yeolpumta-inspired study timer with analytics"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "pyqt6>=6.11.0",
     "sqlmodel>=0.0.38",
+    "pypresence>=4.3.5",
 ]
 
 [dependency-groups]
@@ -17,6 +18,15 @@ dev = [
     "ruff>=0.15.10",
 ]
 
+[project.scripts]
+cygnus = "app.main:main"
+
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["src/tests"]
+
+[tool.uv.pip]
+python = "python3"
+
+[tool.uv]
+package = true

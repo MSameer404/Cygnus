@@ -4,6 +4,7 @@
 from pathlib import Path
 
 from PyQt6.QtWidgets import (
+    QFrame,
     QHBoxLayout,
     QMainWindow,
     QStackedWidget,
@@ -12,8 +13,6 @@ from PyQt6.QtWidgets import (
 
 from app.ui.widgets.sidebar import Sidebar
 from app.ui.profile_dialog import ProfileDialog
-from app.ui.contact_dialog import ContactDialog
-from app.ui.widgets.report_dialog import ReportDialog
 
 
 class MainWindow(QMainWindow):
@@ -38,6 +37,13 @@ class MainWindow(QMainWindow):
         self.sidebar = Sidebar()
         layout.addWidget(self.sidebar)
 
+        # Vertical separator line between sidebar and content
+        vertical_line = QFrame()
+        vertical_line.setObjectName("sidebarSeparator")
+        vertical_line.setFrameShape(QFrame.Shape.VLine)
+        vertical_line.setFixedWidth(1)
+        layout.addWidget(vertical_line)
+
         # Page stack
         self.stack = QStackedWidget()
         self.stack.setObjectName("contentArea")
@@ -46,8 +52,6 @@ class MainWindow(QMainWindow):
         # Connect sidebar navigation
         self.sidebar.page_changed.connect(self._switch_page)
         self.sidebar.profile_clicked.connect(self._open_profile)
-        self.sidebar.contact_clicked.connect(self._open_contact)
-        self.sidebar.report_clicked.connect(self._open_report)
 
     def add_page(self, page: QWidget):
         """Add a page to the stack (order must match Sidebar.PAGES)."""
@@ -66,14 +70,4 @@ class MainWindow(QMainWindow):
     def _open_profile(self):
         """Open the user profile dialog."""
         dialog = ProfileDialog(self)
-        dialog.exec()
-
-    def _open_contact(self):
-        """Open the contact us dialog."""
-        dialog = ContactDialog(self)
-        dialog.exec()
-
-    def _open_report(self):
-        """Open the report issue dialog."""
-        dialog = ReportDialog(self)
         dialog.exec()

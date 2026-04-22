@@ -28,6 +28,9 @@ from app.core import dday_manager, session_manager, subject_manager
 from app.core.update_manager import CURRENT_VERSION, get_update_manager
 from app.data.database import DB_PATH
 from app.data.models import DDayEvent, Subject
+from app.data.settings_store import load_setting, save_setting
+from app.ui.contact_dialog import ContactDialog
+from app.ui.widgets.report_dialog import ReportDialog
 
 
 class CollapsibleSection(QWidget):
@@ -101,10 +104,37 @@ class SettingsPage(QWidget):
         self._setup_ui()
 
     def _setup_ui(self):
-        # Main horizontal layout with splitter
-        main_layout = QHBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(0)
+        # Main vertical layout
+        outer_layout = QVBoxLayout(self)
+        outer_layout.setContentsMargins(0, 0, 0, 0)
+        outer_layout.setSpacing(0)
+
+        # ---------- Header Bar (consistent with other pages) ----------
+        header = QWidget()
+        header.setObjectName("pageHeader")
+        header.setFixedHeight(60)
+        header_layout = QHBoxLayout(header)
+        header_layout.setContentsMargins(20, 0, 20, 0)
+        header_layout.setSpacing(16)
+
+        title = QLabel("Settings")
+        title.setProperty("class", "heading")
+        header_layout.addWidget(title)
+        header_layout.addStretch()
+        outer_layout.addWidget(header)
+
+        # Horizontal separator line below header (aligned with sidebar profile level)
+        horizontal_line = QFrame()
+        horizontal_line.setObjectName("headerSeparator")
+        horizontal_line.setFrameShape(QFrame.Shape.HLine)
+        horizontal_line.setFixedHeight(1)
+        outer_layout.addWidget(horizontal_line)
+
+        # ---------- Content with Splitter ----------
+        content_widget = QWidget()
+        content_layout = QHBoxLayout(content_widget)
+        content_layout.setContentsMargins(20, 20, 20, 20)
+        content_layout.setSpacing(0)
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
 
@@ -117,11 +147,6 @@ class SettingsPage(QWidget):
         layout = QVBoxLayout(content)
         layout.setContentsMargins(40, 30, 40, 30)
         layout.setSpacing(16)
-
-        # ---------- Header ----------
-        title = QLabel("Settings")
-        title.setProperty("class", "heading")
-        layout.addWidget(title)
 
         # ========== Subject Management (Collapsible) ==========
         self._subjects_section = CollapsibleSection("Subjects")
@@ -194,7 +219,7 @@ class SettingsPage(QWidget):
         about_layout.setContentsMargins(16, 12, 16, 12)
         about_layout.setSpacing(8)
 
-        about_header = QLabel(f"ℹ️ About — v{CURRENT_VERSION}")
+        about_header = QLabel(f"About — v{CURRENT_VERSION}")
         about_header.setStyleSheet("font-weight: bold; font-size: 14px; color: #EAEAF0;")
         about_layout.addWidget(about_header)
 
@@ -217,6 +242,26 @@ class SettingsPage(QWidget):
         update_row.addStretch()
 
         about_layout.addLayout(update_row)
+
+        # Contact & Feedback buttons
+        feedback_row = QHBoxLayout()
+        feedback_row.setSpacing(8)
+
+        contact_btn = QPushButton("📧 Contact Us")
+        contact_btn.setProperty("class", "secondary")
+        contact_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        contact_btn.clicked.connect(self._open_contact)
+        feedback_row.addWidget(contact_btn)
+
+        report_btn = QPushButton("🐛 Send Feedback")
+        report_btn.setProperty("class", "secondary")
+        report_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        report_btn.clicked.connect(self._open_report)
+        feedback_row.addWidget(report_btn)
+
+        feedback_row.addStretch()
+        about_layout.addLayout(feedback_row)
+
         layout.addWidget(about_frame)
 
         layout.addStretch()
@@ -266,33 +311,28 @@ class SettingsPage(QWidget):
         # Notice cards
         self._add_notice_card(
             notice_content_layout,
-            "📸 Report Image UI Degraded",
-            "The downloaded report function may have a degraded interface, which will be fixed in a future update. For now, you can use the analytical page instead."
+            "� v2.1.0 Released",
+            "Cygnus v2.1.0 is now available! This update includes bug fixes and improvements. Check the About section below for details on how to update."
         )
 
         self._add_notice_card(
             notice_content_layout,
-            "🔄 Check for Updates",
-            "An upgrade feature has been added so you can check for updates from the About section below."
+            "� Report Image UI Fixed",
+            "The report image generation interface has been improved and is now working correctly."
         )
 
         self._add_notice_card(
             notice_content_layout,
-            "📚 Task Section Revamp",
-            "A massive change has been made to the task section with improved functionality and UI."
+            "� Check for Updates",
+            "The update feature has been enhanced for better reliability. You can check for updates from the About section below."
         )
 
         self._add_notice_card(
             notice_content_layout,
             "💬 Send Feedback",
-            "If you encounter any problems, there's a new report section where you can send bug reports and suggestions directly to us."
+            "If you encounter any problems, use the report section to send bug reports and suggestions directly to us."
         )
 
-        self._add_notice_card(
-            notice_content_layout,
-            "🎨 UI Improvements",
-            "The UI has been improved throughout the app, and update notices will appear here in the settings at the top."
-        )
 
         notice_content_layout.addStretch()
         notice_scroll.setWidget(notice_content)
@@ -302,7 +342,7 @@ class SettingsPage(QWidget):
         splitter.setSizes([700, 300])
         splitter.setCollapsible(1, False)
 
-        main_layout.addWidget(splitter, stretch=1)
+        content_layout.addWidget(splitter, stretch=1)
 
         # Collapsed state button (shown when sidebar is hidden)
         self._expand_btn = QPushButton("←")
@@ -312,7 +352,9 @@ class SettingsPage(QWidget):
         self._expand_btn.setToolTip("Show notice board")
         self._expand_btn.clicked.connect(self._toggle_notice_sidebar)
         self._expand_btn.hide()
-        main_layout.addWidget(self._expand_btn, alignment=Qt.AlignmentFlag.AlignTop)
+        content_layout.addWidget(self._expand_btn, alignment=Qt.AlignmentFlag.AlignTop)
+
+        outer_layout.addWidget(content_widget, stretch=1)
 
     def _add_notice_card(self, layout, title: str, content: str):
         """Add a notice card to the notice board."""
@@ -588,6 +630,16 @@ class SettingsPage(QWidget):
         self._check_update_btn.setEnabled(True)
         self._check_update_btn.setText("🔍 Check for Update")
         self._update_status.setText("")
+
+    def _open_contact(self):
+        """Open the contact us dialog."""
+        dialog = ContactDialog(self)
+        dialog.exec()
+
+    def _open_report(self):
+        """Open the report issue dialog."""
+        dialog = ReportDialog(self)
+        dialog.exec()
 
     def showEvent(self, event):
         super().showEvent(event)

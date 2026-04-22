@@ -47,7 +47,7 @@ class TimerPage(QWidget):
 
     def _setup_ui(self):
         main_layout = QHBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setContentsMargins(20, 0, 20, 20)
         main_layout.setSpacing(0)
 
         # Create splitter for resizable panels
@@ -57,7 +57,7 @@ class TimerPage(QWidget):
         left_panel = QWidget()
         left_panel.setMinimumWidth(500)
         left_layout = QVBoxLayout(left_panel)
-        left_layout.setContentsMargins(20, 10, 20, 10)
+        left_layout.setContentsMargins(20, 0, 20, 10)
         left_layout.setSpacing(0)
 
         # ---------- Subject Picker ----------
@@ -217,6 +217,7 @@ class TimerPage(QWidget):
 
     def _stop_and_save(self):
         """Stop timer and save the session (if at least 5 minutes)."""
+
         start, end, duration = self.timer_engine.stop()
         MIN_SESSION_SECONDS = 5 * 60  # 5 minutes
 

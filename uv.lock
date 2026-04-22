@@ -31,9 +31,10 @@ wheels = [
 
 [[package]]
 name = "cygnus"
-version = "2.0.0"
-source = { virtual = "." }
+version = "2.1.0"
+source = { editable = "." }
 dependencies = [
+    { name = "pypresence" },
     { name = "pyqt6" },
     { name = "sqlmodel" },
 ]
@@ -48,6 +49,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "pypresence", specifier = ">=4.3.5" },
     { name = "pyqt6", specifier = ">=6.11.0" },
     { name = "sqlmodel", specifier = ">=0.0.38" },
 ]
@@ -264,6 +266,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/c7/fe/9278c29394bf69169febc21f96b4252c3ee7c8ec22c2fc545004bed47e71/pyinstaller_hooks_contrib-2026.4.tar.gz", hash = "sha256:766c281acb1ecc32e21c8c667056d7ebf5da0aabd5e30c219f9c2a283620eeaa", size = 173050, upload-time = "2026-03-31T14:10:51.188Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/88/f4/035fb8c06deff827f540a9a4ed9122c54e5376fca3e42eddf0c263730775/pyinstaller_hooks_contrib-2026.4-py3-none-any.whl", hash = "sha256:1de1a5e49a878122010b88c7e295502bc69776c157c4a4dc78741a4e6178b00f", size = 455496, upload-time = "2026-03-31T14:10:49.867Z" },
+]
+
+[[package]]
+name = "pypresence"
+version = "4.6.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f6/6b/dedacb949ee73c3fd4a11992a4e9a70fc4cd1046ed6870f9138348293ded/pypresence-4.6.1.tar.gz", hash = "sha256:05199516a3b4e182b637b3cd5415aab7ba542707664f634f35a7220c4f10334f", size = 20419, upload-time = "2025-10-17T18:53:39.484Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bd/0d/1c817c6769ce0b64cc0dcc20bc9d0edb4dc560e83a3b5f0d5cbda04c3d35/pypresence-4.6.1-py3-none-any.whl", hash = "sha256:33d4549fcdf4102f81935df4ba587bacb22193e0c50c541d1ab9329b21df33cd", size = 14033, upload-time = "2025-10-17T18:53:38.184Z" },
 ]
 
 [[package]]

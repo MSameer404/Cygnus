@@ -3,12 +3,12 @@
 import calendar
 import traceback
 from datetime import date, datetime, time, timedelta
+from pathlib import Path
 
 from sqlmodel import and_, select
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
-    QFileDialog,
     QFrame,
     QHBoxLayout,
     QLabel,
@@ -24,6 +24,11 @@ from app.core import stats_engine
 from app.core.events import app_events
 from app.core.timer_engine import TimerEngine
 from app.ui.widgets.bar_chart import BarChart
+from app.ui.widgets.html_report_generator import (
+    generate_html_report,
+    generate_week_html_report,
+    open_report_in_browser,
+)
 from app.ui.widgets.pie_chart import PieChart
 from app.ui.widgets.snapshot_widget import SnapshotWidget
 from app.ui.widgets.step_chart import StepChart
@@ -51,16 +56,8 @@ class StatsPage(QWidget):
 
         content = QWidget()
         self._layout = QVBoxLayout(content)
-        self._layout.setContentsMargins(40, 30, 40, 30)
-        self._layout.setSpacing(20)
-
-        # ---------- Header ----------
-        header = QHBoxLayout()
-        title = QLabel("Statistics")
-        title.setProperty("class", "heading")
-        header.addWidget(title)
-        header.addStretch()
-        self._layout.addLayout(header)
+        self._layout.setContentsMargins(40, 20, 40, 30)
+        self._layout.setSpacing(16)
 
         # ---------- Tab Bar ----------
         self._tab_bar = QTabBar()
@@ -447,53 +444,22 @@ class StatsPage(QWidget):
         self._refresh()
 
     def _download_snapshot(self):
-        """Generate report based on current tab (Day snapshot or Week report)."""
-        if self._current_tab == 0:  # Day - save snapshot image
-            file_path, _ = QFileDialog.getSaveFileName(
-                self,
-                "Save Snapshot",
-                f"Cygnus_Daily_Report_{self._current_date.strftime('%Y-%m-%d')}.png",
-                "Images (*.png)"
-            )
-            
-            if not file_path:
-                return
-                
+        """Generate report based on current tab (Day HTML report or Week report image)."""
+        if self._current_tab == 0:  # Day - generate HTML report and open in browser
             try:
-                total_time = stats_engine.get_daily_total(self._current_date)
-                snapsht_widget = SnapshotWidget(self._current_date, total_time)
-                
-                # Get the image
-                image = snapsht_widget.generate_image()
-                
-                if image.save(file_path):
-                    QMessageBox.information(self, "Success", f"Daily report saved successfully to:\n{file_path}")
-                else:
-                    QMessageBox.warning(self, "Error", "Failed to save the daily report image.")
+                file_path = Path.home() / f"Cygnus_Report_{self._current_date.strftime('%Y-%m-%d')}.html"
+                html_path = generate_html_report(self._current_date, file_path)
+                open_report_in_browser(html_path)
+                QMessageBox.information(self, "Report Generated", f"Daily report opened in browser:\n{html_path}")
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"An error occurred while generating daily report:\n{traceback.format_exc()}")
 
-        elif self._current_tab == 1:  # Week - save week report image
-            from app.ui.widgets.week_report_widget import WeekReportWidget
-            
-            week_start = stats_engine.get_week_start(self._current_date)
-            file_path, _ = QFileDialog.getSaveFileName(
-                self,
-                "Save Week Report",
-                f"Cygnus_Week_Report_{week_start.strftime('%Y-%m-%d')}.png",
-                "Images (*.png)"
-            )
-            
-            if not file_path:
-                return
-                
+        elif self._current_tab == 1:  # Week - generate HTML report and open in browser
             try:
-                report_widget = WeekReportWidget(week_start)
-                image = report_widget.generate_image()
-                
-                if image.save(file_path):
-                    QMessageBox.information(self, "Success", f"Week report saved successfully to:\n{file_path}")
-                else:
-                    QMessageBox.warning(self, "Error", "Failed to save the week report image.")
+                week_start = stats_engine.get_week_start(self._current_date)
+                file_path = Path.home() / f"Cygnus_Week_Report_{week_start.strftime('%Y-%m-%d')}.html"
+                html_path = generate_week_html_report(week_start, file_path)
+                open_report_in_browser(html_path)
+                QMessageBox.information(self, "Report Generated", f"Week report opened in browser:\n{html_path}")
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"An error occurred while generating week report:\n{traceback.format_exc()}")
