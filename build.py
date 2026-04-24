@@ -10,7 +10,7 @@ def main():
     main_script = "src/app/main.py"
     
     # Create version.txt for bundled executable
-    version = "2.1.0"  # Must match pyproject.toml
+    version = "2.2.0"  # Must match pyproject.toml
     with open("version.txt", "w", encoding="utf-8") as f:
         f.write(version)
     print(f"Created version.txt with version {version}")
