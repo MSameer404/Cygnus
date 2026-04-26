@@ -6,7 +6,7 @@
 
 The easiest way to use Cygnus on Windows is to download the standalone executable. You don't need to install Python or any dependencies.
 
-🚀 **[Download the Latest Windows Executable (Cygnus.exe)](https://github.com/MohammadSameer-Dev/Cygnus/releases/latest/download/Cygnus.exe)**
+🚀 **[Download the Latest Windows Executable (Cygnus.exe)](https://github.com/MSameer404/Cygnus/releases/latest/download/Cygnus.exe)**
 
 Alternatively, visit the [Releases page](https://github.com/MohammadSameer-Dev/Cygnus/releases) to see all available versions.
 
