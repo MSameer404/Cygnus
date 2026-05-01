@@ -54,7 +54,8 @@ class Sidebar(QWidget):
         brand.clicked.connect(self.profile_clicked.emit)
         brand.setFixedSize(64, 60)
         
-        assets_dir = Path(__file__).parent.parent.parent / "assets"
+        from app.core.utils import get_assets_dir, get_icon_path
+        assets_dir = get_assets_dir()
         icon_ico = assets_dir / "logo.ico"
         icon_png = assets_dir / "logo.png"
 
@@ -86,7 +87,6 @@ class Sidebar(QWidget):
         nav_layout.setSpacing(12)
 
         # Navigation buttons
-        icons_dir = assets_dir / "icons"
         for i, (icon_file, tooltip) in enumerate(self.PAGES):
             btn = QPushButton()
             btn.setProperty("class", "sidebar-btn")
@@ -94,7 +94,7 @@ class Sidebar(QWidget):
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
             btn.setFixedSize(48, 48)
 
-            icon_path = icons_dir / icon_file
+            icon_path = get_icon_path(icon_file)
             if icon_path.exists():
                 btn.setIcon(QIcon(str(icon_path)))
                 btn.setIconSize(QSize(32, 32))

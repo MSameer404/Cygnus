@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
 )
 
-GITHUB_URL = "https://github.com/MohammadSameer-Dev/Cygnus"
+GITHUB_URL = "https://github.com/MSameer404/Cygnus"
 
 
 class ContactDialog(QDialog):

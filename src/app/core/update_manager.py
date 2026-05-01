@@ -39,12 +39,12 @@ def get_current_version() -> str:
         pass
     
     # Hardcoded fallback version (must be updated manually for each release)
-    return "2.2.0"
+    return "2.3.0"
 
 
 CURRENT_VERSION = get_current_version()
-GITHUB_API_URL = "https://api.github.com/repos/MohammadSameer-Dev/Cygnus/releases/latest"
-GITHUB_RELEASES_URL = "https://github.com/MohammadSameer-Dev/Cygnus/releases/latest"
+GITHUB_API_URL = "https://api.github.com/repos/MSameer404/Cygnus/releases/latest"
+GITHUB_RELEASES_URL = "https://github.com/MSameer404/Cygnus/releases/latest"
 
 
 class CheckUpdateWorker(QThread):

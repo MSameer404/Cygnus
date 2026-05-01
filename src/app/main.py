@@ -38,21 +38,13 @@ def main():
         except AttributeError:
             pass
 
-    # Load and set application icon (prioritize .ico for Windows)
-    if getattr(sys, 'frozen', False):
-        # Running as PyInstaller bundle
-        # PyInstaller puts `main.py` at root `_MEIPASS`, but `assets` are at `app/assets`
-        assets_dir = Path(sys._MEIPASS) / "app" / "assets"
-    else:
-        # Running normally
-        assets_dir = Path(__file__).parent / "assets"
+    from app.core.utils import get_assets_dir
+    assets_dir = get_assets_dir()
 
     icon_ico = assets_dir / "logo.ico"
     icon_png = assets_dir / "logo.png"
 
     if icon_ico.exists():
-        app.setWindowIcon(QIcon(str(icon_ico)))
-        # Make sure main window also picks up this icon explicitly for some Windows systems
         app.setWindowIcon(QIcon(str(icon_ico)))
     elif icon_png.exists():
         app.setWindowIcon(QIcon(str(icon_png)))
@@ -98,6 +90,14 @@ def main():
         shortcut.activated.connect(lambda idx=i: _go_page(window, idx))
 
     window.show()
+
+    # Check for updates
+    from app.core.updater import AutoUpdater
+    updater = AutoUpdater()
+    release_data = updater.check_for_updates()
+    if release_data:
+        updater.download_and_install(release_data, window)
+
     sys.exit(app.exec())
 
 

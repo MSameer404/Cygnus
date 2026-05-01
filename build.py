@@ -10,7 +10,7 @@ def main():
     main_script = "src/app/main.py"
     
     # Create version.txt for bundled executable
-    version = "2.2.0"  # Must match pyproject.toml
+    version = "2.3.0"  # Must match pyproject.toml
     with open("version.txt", "w", encoding="utf-8") as f:
         f.write(version)
     print(f"Created version.txt with version {version}")
@@ -45,6 +45,7 @@ def main():
         # Run the command using subprocess
         result = subprocess.run(command, check=True, text=True)
         print("\nBuild Successful! The executable is located in the 'dist' folder.")
+        print("\nNEXT STEP: Open 'setup.iss' in Inno Setup to create the professional Installer.")
     except subprocess.CalledProcessError as e:
         print(f"\nBuild Failed with error code {e.returncode}.")
         sys.exit(e.returncode)

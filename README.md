@@ -4,17 +4,18 @@
 
 ## 📥 Download
 
-The easiest way to use Cygnus on Windows is to download the standalone executable. You don't need to install Python or any dependencies.
+The easiest way to use Cygnus on Windows is to download the **official installer**. This will install the app to your computer, create shortcuts, and enable **automatic updates**.
 
-🚀 **[Download the Latest Windows Executable (Cygnus.exe)](https://github.com/MSameer404/Cygnus/releases/latest/download/Cygnus-windows-v2.2.0.exe)**
+🚀 **[Download the Latest Windows Installer (Cygnus_Setup.exe)](https://github.com/MSameer404/Cygnus/releases/latest/download/Cygnus_Setup.exe)**
 
-Alternatively, visit the [Releases page](https://github.com/MohammadSameer-Dev/Cygnus/releases) to see all available versions.
+Alternatively, visit the [Releases page](https://github.com/MSameer404/Cygnus/releases) to see all available versions.
 
-*(Note: If you run into formatting or execution issues on Windows, be sure to "Run as Administrator" or add an exception in your antivirus, as locally built `.exe` files sometimes trigger false positives.)*
+---
 
 ## ✨ Features
 
 - **⏱️ Study Timer & Session Tracking**: Focus deeply with a Yeolpumta-inspired interface. Also supports the manual addition of past study sessions.
+- **🔄 Auto-Update**: Never miss a feature! The app automatically checks for and installs new versions directly from GitHub.
 - **📝 To-Do List Management**: Organize your tasks with an intuitive to-do list, complete with a comprehensive Weekly View.
 - **📊 Rich Analytics & Heatmap**: Track your progress over time through detailed study heatmaps and analytics. 
 - **📸 Daily Statistics Snapshot**: Generate, view, and share/download a beautiful daily snapshot of your study statistics.
@@ -41,7 +42,7 @@ Ensure you have [Python 3.13+](https://www.python.org/downloads/) installed. We 
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/MohammadSameer-Dev/Cygnus.git
+   git clone https://github.com/MSameer404/Cygnus.git
    cd Cygnus
    ```
 
@@ -64,18 +65,24 @@ To start Cygnus from the source, run:
 uv run src/app/main.py
 ```
 
-### Packaging the Application for Windows
+### Packaging the Application for Windows (EXE + Installer)
 
-If you want to build the `.exe` yourself:
+To create a professional release:
 
-```bash
-uv run build.py
-```
-*Note: This relies on PyInstaller and the provided `Cygnus.spec` file. The resulting application will be placed in the `dist` folder.*
+1. **Build the Executable**:
+   ```bash
+   uv run python build.py
+   ```
+   *This creates `Cygnus.exe` in the `dist` folder.*
+
+2. **Build the Installer**:
+   - Open `setup.iss` in **Inno Setup**.
+   - Click **Compile**.
+   - Your final installer `Cygnus_Setup.exe` will be ready in the `dist` folder.
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome! Feel free to check out the [issues page](https://github.com/MohammadSameer-Dev/Cygnus/issues) if you want to contribute.
+Contributions, issues, and feature requests are welcome! Feel free to check out the [issues page](https://github.com/MSameer404/Cygnus/issues) if you want to contribute.
 
 ## 📝 License
 

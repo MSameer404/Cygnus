@@ -63,7 +63,8 @@ class MainWindow(QMainWindow):
 
     def load_stylesheet(self):
         """Load and apply the global QSS theme."""
-        qss_path = Path(__file__).parent.parent / "assets" / "theme.qss"
+        from app.core.utils import get_assets_dir
+        qss_path = get_assets_dir() / "theme.qss"
         if qss_path.exists():
             self.setStyleSheet(qss_path.read_text(encoding="utf-8"))
 
