@@ -7,8 +7,8 @@ from pathlib import Path
 
 from sqlmodel import and_, select
 
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,

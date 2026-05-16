@@ -1,6 +1,6 @@
 # Cygnus 🦢
 
-> A powerful, Yeolpumta-inspired study timer and productivity tracking application with rich analytics, built in Python and PyQt6.
+> A powerful, Yeolpumta-inspired study timer and productivity tracking application with rich analytics, built in Python and PySide6.
 
 ## 📥 Download
 
@@ -27,7 +27,7 @@ Alternatively, visit the [Releases page](https://github.com/MSameer404/Cygnus/re
 ## 🛠️ Technology Stack
 
 - **[Python](https://www.python.org/)** (>= 3.13)
-- **[PyQt6](https://riverbankcomputing.com/software/pyqt/)** - Modern GUI framework.
+- **[PySide6](https://doc.qt.io/qtforpython-6/)** - Modern GUI framework (LGPL licensed).
 - **[SQLModel](https://sqlmodel.tiangolo.com/)** - Powerful database interaction combining SQL with Pydantic type hints.
 - **[PyInstaller](https://pyinstaller.org/)** - For packaging the app into a standalone Windows `.exe`.
 - **[uv](https://github.com/astral-sh/uv)** - For ultra-fast Python project and package management.

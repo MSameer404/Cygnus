@@ -3,7 +3,7 @@ import sys
 import requests
 import subprocess
 from pathlib import Path
-from PyQt6.QtWidgets import QMessageBox
+from PySide6.QtWidgets import QMessageBox
 
 GITHUB_REPO = "MSameer404/Cygnus"
 CURRENT_VERSION = "2.3.0"

@@ -4,7 +4,7 @@
 import time
 
 import pytest
-from PyQt6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication
 
 from app.core.timer_engine import TimerEngine, TimerState
 

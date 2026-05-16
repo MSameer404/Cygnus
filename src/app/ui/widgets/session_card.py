@@ -1,8 +1,8 @@
 # src/app/ui/widgets/session_card.py
 """Compact session display card with subject color, time range, and delete."""
 
-from PyQt6.QtCore import pyqtSignal, Qt
-from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton
+from PySide6.QtCore import Signal, Qt
+from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton
 
 from app.core import subject_manager
 from app.core.timer_engine import TimerEngine
@@ -12,7 +12,7 @@ from app.data.models import StudySession
 class SessionCard(QFrame):
     """A compact card showing one study session."""
 
-    deleted = pyqtSignal(int)  # session_id
+    deleted = Signal(int)  # session_id
 
     def __init__(self, study_session: StudySession, parent=None):
         super().__init__(parent)

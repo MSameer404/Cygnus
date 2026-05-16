@@ -2,9 +2,9 @@
 """Custom-painted donut/pie chart for subject breakdown."""
 
 
-from PyQt6.QtCore import Qt, QRectF
-from PyQt6.QtGui import QColor, QPainter, QPen, QFont, QPainterPath
-from PyQt6.QtWidgets import QWidget
+from PySide6.QtCore import Qt, QRectF
+from PySide6.QtGui import QColor, QPainter, QPen, QFont, QPainterPath
+from PySide6.QtWidgets import QWidget
 
 
 

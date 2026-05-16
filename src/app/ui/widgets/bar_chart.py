@@ -1,9 +1,9 @@
 # src/app/ui/widgets/bar_chart.py
 """Vertical bar chart for daily/weekly/monthly study time visualization."""
 
-from PyQt6.QtCore import Qt, QRectF
-from PyQt6.QtGui import QColor, QPainter, QPen, QFont, QPainterPath, QLinearGradient
-from PyQt6.QtWidgets import QWidget
+from PySide6.QtCore import Qt, QRectF
+from PySide6.QtGui import QColor, QPainter, QPen, QFont, QPainterPath, QLinearGradient
+from PySide6.QtWidgets import QWidget
 
 from app.core.timer_engine import TimerEngine
 

@@ -3,9 +3,9 @@
 
 from datetime import date
 
-from PyQt6.QtCore import pyqtSignal, Qt
-from PyQt6.QtGui import QColor
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import Signal, Qt
+from PySide6.QtGui import QColor
+from PySide6.QtWidgets import (
     QHBoxLayout,
     QPushButton,
     QScrollArea,
@@ -27,8 +27,8 @@ from app.ui.widgets.subject_card import SubjectCard
 class SubjectPicker(QWidget):
     """Horizontal row of subject cards. Emits subject_selected(Subject)."""
 
-    subject_selected = pyqtSignal(object)  # Subject or None
-    subjects_changed = pyqtSignal()
+    subject_selected = Signal(object)  # Subject or None
+    subjects_changed = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -116,7 +116,7 @@ class SubjectPicker(QWidget):
         if action == edit_action:
             self._edit_subject_dialog(subject)
         elif action == delete_action:
-            from PyQt6.QtWidgets import QMessageBox
+            from PySide6.QtWidgets import QMessageBox
             reply = QMessageBox.warning(
                 self,
                 "Delete Subject",

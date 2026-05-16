@@ -1,9 +1,9 @@
 # src/app/ui/syllabus_tracker_page.py
 """Syllabus Tracker page with per-subject chapter/material tables."""
 
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QColor
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QColor
+from PySide6.QtWidgets import (
     QAbstractItemView,
     QCheckBox,
     QColorDialog,
@@ -57,7 +57,7 @@ class PriorityButton(QPushButton):
     sub-control styling issues on Windows.
     """
 
-    priority_changed = pyqtSignal(str)  # emits new priority string
+    priority_changed = Signal(str)  # emits new priority string
 
     _CYCLE = ["High", "Medium", "Low"]
 

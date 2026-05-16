@@ -3,9 +3,9 @@
 
 from datetime import date
 
-from PyQt6.QtCore import Qt, QRectF
-from PyQt6.QtGui import QColor, QPainter, QPen, QFont, QPainterPath
-from PyQt6.QtWidgets import QWidget, QToolTip
+from PySide6.QtCore import Qt, QRectF
+from PySide6.QtGui import QColor, QPainter, QPen, QFont, QPainterPath
+from PySide6.QtWidgets import QWidget, QToolTip
 
 from app.core import session_manager, subject_manager
 from app.core.timer_engine import TimerEngine

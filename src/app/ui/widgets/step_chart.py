@@ -1,9 +1,9 @@
 # src/app/ui/widgets/step_chart.py
 """Step-line chart for daily cumulative study time visualization."""
 
-from PyQt6.QtCore import Qt, QPointF
-from PyQt6.QtGui import QColor, QPainter, QPen, QFont
-from PyQt6.QtWidgets import QWidget
+from PySide6.QtCore import Qt, QPointF
+from PySide6.QtGui import QColor, QPainter, QPen, QFont
+from PySide6.QtWidgets import QWidget
 
 
 class StepChart(QWidget):
@@ -174,7 +174,7 @@ class StepChart(QWidget):
             fill_color.setAlpha(30)
 
             # Create polygon for fill
-            from PyQt6.QtGui import QPolygonF
+            from PySide6.QtGui import QPolygonF
 
             polygon = QPolygonF()
             polygon.append(QPointF(padding_left, padding_top + chart_h))

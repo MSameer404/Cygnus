@@ -4,9 +4,9 @@
 import calendar
 from datetime import date, timedelta
 
-from PyQt6.QtCore import QRectF
-from PyQt6.QtGui import QColor, QPainter, QFont, QPainterPath
-from PyQt6.QtWidgets import QWidget, QToolTip
+from PySide6.QtCore import QRectF
+from PySide6.QtGui import QColor, QPainter, QFont, QPainterPath
+from PySide6.QtWidgets import QWidget, QToolTip
 
 from app.core.timer_engine import TimerEngine
 

@@ -5,9 +5,9 @@ import csv
 import os
 from datetime import date
 
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QColor
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor
+from PySide6.QtWidgets import (
     QColorDialog,
     QDateEdit,
     QDialog,
@@ -223,7 +223,7 @@ class SettingsPage(QWidget):
         about_header.setStyleSheet("font-weight: bold; font-size: 14px; color: #EAEAF0;")
         about_layout.addWidget(about_header)
 
-        about = QLabel("Cygnus — A Yeolpumta-inspired study timer.\nBuilt with Python, PyQt6, and SQLModel.")
+        about = QLabel("Cygnus — A Yeolpumta-inspired study timer.\nBuilt with Python, PySide6, and SQLModel.")
         about.setProperty("class", "muted")
         about_layout.addWidget(about)
 

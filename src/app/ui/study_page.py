@@ -1,7 +1,7 @@
 """Unified Study page with Timer/Stats toggle switch in header."""
 
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,

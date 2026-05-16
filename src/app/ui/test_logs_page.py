@@ -1,7 +1,7 @@
 """Test Tracker page for students to track their test scores (Coming Soon)."""
 
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,

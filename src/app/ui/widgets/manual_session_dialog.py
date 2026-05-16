@@ -3,8 +3,8 @@
 
 from datetime import date, time
 
-from PyQt6.QtCore import Qt, QDate, QTime
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import Qt, QDate, QTime
+from PySide6.QtWidgets import (
     QComboBox,
     QDateEdit,
     QDialog,

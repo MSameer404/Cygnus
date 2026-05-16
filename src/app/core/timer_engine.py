@@ -4,7 +4,7 @@
 from enum import Enum, auto
 from datetime import datetime
 
-from PyQt6.QtCore import QObject, QTimer, pyqtSignal
+from PySide6.QtCore import QObject, QTimer, Signal
 
 
 class TimerState(Enum):
@@ -16,9 +16,9 @@ class TimerEngine(QObject):
     """Stopwatch engine that ticks every 100ms and emits elapsed seconds."""
 
     # Signals
-    tick = pyqtSignal(int)           # elapsed_seconds
-    state_changed = pyqtSignal(str)  # "idle" | "running"
-    session_finished = pyqtSignal(datetime, datetime, int)  # start, end, duration_s
+    tick = Signal(int)           # elapsed_seconds
+    state_changed = Signal(str)  # "idle" | "running"
+    session_finished = Signal(datetime, datetime, int)  # start, end, duration_s
 
     def __init__(self, parent=None):
         super().__init__(parent)

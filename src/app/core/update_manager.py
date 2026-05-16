@@ -9,7 +9,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-from PyQt6.QtCore import QThread, pyqtSignal
+from PySide6.QtCore import QThread, Signal
 
 
 def get_current_version() -> str:
@@ -50,9 +50,9 @@ GITHUB_RELEASES_URL = "https://github.com/MSameer404/Cygnus/releases/latest"
 class CheckUpdateWorker(QThread):
     """Worker thread to check for updates from GitHub releases."""
 
-    update_available = pyqtSignal(str, str, list)  # version, changelog, assets
-    no_update = pyqtSignal()
-    error = pyqtSignal(str)
+    update_available = Signal(str, str, list)  # version, changelog, assets
+    no_update = Signal()
+    error = Signal(str)
 
     def run(self):
         """Fetch latest release from GitHub API."""
@@ -122,7 +122,7 @@ class UpdateManager:
 
     def check_for_update(self, parent_widget) -> CheckUpdateWorker:
         """Start checking for updates. Returns the worker thread."""
-        from PyQt6.QtWidgets import QMessageBox
+        from PySide6.QtWidgets import QMessageBox
 
         self._check_worker = CheckUpdateWorker()
 

@@ -3,9 +3,9 @@
 
 from datetime import date
 
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QColor, QPainter, QPen
-from PyQt6.QtWidgets import QFrame, QVBoxLayout, QLabel
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor, QPainter, QPen
+from PySide6.QtWidgets import QFrame, QVBoxLayout, QLabel
 
 from app.data.models import DDayEvent
 

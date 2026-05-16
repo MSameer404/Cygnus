@@ -2,9 +2,9 @@
 """Vertical icon sidebar for page navigation."""
 
 from pathlib import Path
-from PyQt6.QtCore import pyqtSignal, Qt, QSize
-from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QFrame, QVBoxLayout, QPushButton, QWidget, QSpacerItem, QSizePolicy, QLabel, QHBoxLayout
+from PySide6.QtCore import Signal, Qt, QSize
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QFrame, QVBoxLayout, QPushButton, QWidget, QSpacerItem, QSizePolicy, QLabel, QHBoxLayout
 
 from app.core.update_manager import CURRENT_VERSION
 
@@ -12,8 +12,8 @@ from app.core.update_manager import CURRENT_VERSION
 class Sidebar(QWidget):
     """Vertical navigation sidebar with icon buttons."""
 
-    page_changed = pyqtSignal(int)
-    profile_clicked = pyqtSignal()
+    page_changed = Signal(int)
+    profile_clicked = Signal()
 
     # Icon files for each page (stored in assets/icons/)
     PAGES = [

@@ -6,9 +6,9 @@ import random
 from datetime import date, timedelta
 from pathlib import Path
 
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QImage, QPainter, QPixmap
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QImage, QPainter, QPixmap
+from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,

@@ -7,9 +7,9 @@ import ctypes
 import os
 from pathlib import Path
 
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QIcon
-from PyQt6.QtWidgets import QApplication
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont, QIcon
+from PySide6.QtWidgets import QApplication
 
 from app.data.database import init_db
 from app.ui.main_window import MainWindow
@@ -74,7 +74,7 @@ def main():
     window.add_page(settings)    # 5: Settings
 
     # ---------- Keyboard shortcuts ----------
-    from PyQt6.QtGui import QShortcut, QKeySequence
+    from PySide6.QtGui import QShortcut, QKeySequence
 
     # Space = play/pause timer (only when timer view is active)
     space_shortcut = QShortcut(QKeySequence(Qt.Key.Key_Space), window)

@@ -7,8 +7,8 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 from urllib.error import URLError
 
-from PyQt6.QtCore import Qt, QThread, pyqtSignal
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtWidgets import (
     QDialog,
     QVBoxLayout,
     QHBoxLayout,
@@ -32,7 +32,7 @@ REPORT_TYPES = {
 class WebhookWorker(QThread):
     """Background worker to send report to Discord webhook."""
 
-    finished = pyqtSignal(bool, str)
+    finished = Signal(bool, str)
 
     def __init__(self, report_type: str, title: str, description: str):
         super().__init__()

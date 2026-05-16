@@ -1,14 +1,14 @@
 # src/app/ui/widgets/subject_card.py
 """Subject card widget with color accent and study time display."""
 
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QLabel, QWidget
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QLabel, QWidget
 
 
 class SubjectCard(QFrame):
     """A card displaying subject name, today's study time, and color accent."""
 
-    clicked = pyqtSignal()
+    clicked = Signal()
 
     def __init__(self, subject_id: int, name: str, color_hex: str, today_time_text: str, parent=None):
         super().__init__(parent)

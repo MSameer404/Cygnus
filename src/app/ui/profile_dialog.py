@@ -4,9 +4,9 @@
 from datetime import date
 from pathlib import Path
 
-from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtGui import QFont, QIcon, QPixmap
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import QFont, QIcon, QPixmap
+from PySide6.QtWidgets import (
     QDateEdit,
     QDialog,
     QDoubleSpinBox,
