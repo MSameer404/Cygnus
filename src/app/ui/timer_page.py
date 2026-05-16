@@ -66,45 +66,85 @@ class TimerPage(QWidget):
         left_layout.addSpacing(40)
 
         # ---------- Timer Display ----------
-        timer_container = QWidget()
+        timer_container = QFrame()
+        timer_container.setObjectName("timerContainer")
+        timer_container.setStyleSheet("""
+            QFrame#timerContainer {
+                background-color: rgba(30, 30, 48, 0.4);
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                border-radius: 32px;
+            }
+        """)
         timer_layout = QVBoxLayout(timer_container)
         timer_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        timer_layout.setSpacing(8)
+        timer_layout.setContentsMargins(40, 50, 40, 50)
+        timer_layout.setSpacing(16)
 
         self._timer_label = QLabel("00:00:00")
-        self._timer_label.setProperty("class", "timer-display")
+        self._timer_label.setStyleSheet("""
+            font-size: 120px;
+            font-family: 'Consolas', monospace;
+            font-weight: bold;
+            color: #FFFFFF;
+            letter-spacing: 8px;
+        """)
         self._timer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         timer_layout.addWidget(self._timer_label)
 
         # Status label
         self._status_label = QLabel("Ready to study")
-        self._status_label.setProperty("class", "muted")
+        self._status_label.setStyleSheet("font-size: 18px; color: #A78BFA; font-weight: 600; letter-spacing: 1px;")
         self._status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         timer_layout.addWidget(self._status_label)
 
         left_layout.addWidget(timer_container)
-        left_layout.addSpacing(30)
+        left_layout.addSpacing(40)
 
         # ---------- Controls (Single Button) ----------
         controls = QHBoxLayout()
         controls.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self._session_btn = QPushButton("▶ Start Session")
-        self._session_btn.setProperty("class", "task-action-btn")
+        self._session_btn = QPushButton("▶  START")
         self._session_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._session_btn.setMinimumWidth(180)
+        self._session_btn.setMinimumHeight(64)
+        self._session_btn.setMinimumWidth(240)
+        self._session_btn.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #10B981, stop:1 #059669);
+                color: #FFFFFF;
+                border-radius: 32px;
+                font-size: 20px;
+                font-weight: bold;
+                letter-spacing: 2px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #34D399, stop:1 #10B981);
+                border: 2px solid #6EE7B7;
+            }
+        """)
         self._session_btn.clicked.connect(self._on_session_button_clicked)
         controls.addWidget(self._session_btn)
 
         left_layout.addLayout(controls)
-        left_layout.addSpacing(24)
+        left_layout.addSpacing(32)
 
         # ---------- Today's Total ----------
         self._today_label = QLabel("Today: 0h 0m")
-        self._today_label.setProperty("class", "caption")
         self._today_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._today_label.setStyleSheet("font-size: 16px; color: #8B8BA0;")
-        left_layout.addWidget(self._today_label)
+        self._today_label.setStyleSheet("""
+            font-size: 16px;
+            color: #C4B5FD;
+            font-weight: bold;
+            background-color: rgba(124, 58, 237, 0.15);
+            border-radius: 16px;
+            padding: 8px 24px;
+        """)
+        
+        today_layout = QHBoxLayout()
+        today_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        today_layout.addWidget(self._today_label)
+        left_layout.addLayout(today_layout)
+        
         left_layout.addStretch()
 
         splitter.addWidget(left_panel)
@@ -247,24 +287,60 @@ class TimerPage(QWidget):
 
     def _on_state_changed(self, state: str):
         if state == "running":
-            self._session_btn.setText("⏹ Stop & Save")
-            self._session_btn.setProperty("class", "danger-btn")
-            self._session_btn.style().unpolish(self._session_btn)
-            self._session_btn.style().polish(self._session_btn)
+            self._session_btn.setText("⏹  STOP & SAVE")
+            self._session_btn.setStyleSheet("""
+                QPushButton {
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #F43F5E, stop:1 #E11D48);
+                    color: #FFFFFF;
+                    border-radius: 32px;
+                    font-size: 20px;
+                    font-weight: bold;
+                    letter-spacing: 2px;
+                }
+                QPushButton:hover {
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FB7185, stop:1 #F43F5E);
+                    border: 2px solid #FDA4AF;
+                }
+            """)
             self.subject_picker.set_interactive(False)
             self._status_label.setText(
                 f"Studying: {self._current_subject.name}" if self._current_subject else "Studying..."
             )
-            self._status_label.setStyleSheet("font-size: 14px; color: #00CEC9;")
+            self._status_label.setStyleSheet("font-size: 18px; color: #06B6D4; font-weight: 600; letter-spacing: 1px;")
+            self._timer_label.setStyleSheet("""
+                font-size: 120px;
+                font-family: 'Consolas', monospace;
+                font-weight: bold;
+                color: #06B6D4;
+                letter-spacing: 8px;
+            """)
         else:  # idle
-            self._session_btn.setText("▶ Start Session")
-            self._session_btn.setProperty("class", "task-action-btn")
-            self._session_btn.style().unpolish(self._session_btn)
-            self._session_btn.style().polish(self._session_btn)
+            self._session_btn.setText("▶  START")
+            self._session_btn.setStyleSheet("""
+                QPushButton {
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #10B981, stop:1 #059669);
+                    color: #FFFFFF;
+                    border-radius: 32px;
+                    font-size: 20px;
+                    font-weight: bold;
+                    letter-spacing: 2px;
+                }
+                QPushButton:hover {
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #34D399, stop:1 #10B981);
+                    border: 2px solid #6EE7B7;
+                }
+            """)
             self.subject_picker.set_interactive(True)
             self._timer_label.setText("00:00:00")
+            self._timer_label.setStyleSheet("""
+                font-size: 120px;
+                font-family: 'Consolas', monospace;
+                font-weight: bold;
+                color: #FFFFFF;
+                letter-spacing: 8px;
+            """)
             self._status_label.setText("Ready to study")
-            self._status_label.setStyleSheet("font-size: 14px; color: #8B8BA0;")
+            self._status_label.setStyleSheet("font-size: 18px; color: #A78BFA; font-weight: 600; letter-spacing: 1px;")
 
     def _refresh_sessions(self):
         """Reload today's sessions from DB."""
@@ -293,9 +369,11 @@ class TimerPage(QWidget):
         """Create a compact session card widget with color accent."""
         card = QFrame()
         card.setProperty("class", "card")
+        card.setStyleSheet("QFrame.card { padding: 8px; border-radius: 12px; }")
+        
         main_layout = QHBoxLayout(card)
         main_layout.setContentsMargins(0, 0, 8, 0)
-        main_layout.setSpacing(0)
+        main_layout.setSpacing(12)
 
         # Get subject info
         subj = subject_manager.get_subject(study_session.subject_id)
@@ -303,26 +381,26 @@ class TimerPage(QWidget):
 
         # Left color accent bar
         accent_bar = QWidget()
-        accent_bar.setFixedWidth(4)
-        accent_bar.setStyleSheet(f"background-color: {color}; border-radius: 2px;")
+        accent_bar.setFixedSize(6, 40)
+        accent_bar.setStyleSheet(f"background-color: {color}; border-radius: 3px;")
         main_layout.addWidget(accent_bar)
 
         # Content area
         content = QWidget()
         content_layout = QVBoxLayout(content)
-        content_layout.setContentsMargins(10, 8, 0, 8)
+        content_layout.setContentsMargins(4, 4, 0, 4)
         content_layout.setSpacing(4)
 
         # Subject name (top)
         name = QLabel(subj.name if subj else "Unknown")
-        name.setStyleSheet("font-weight: bold; font-size: 13px; color: #EAEAF0;")
+        name.setStyleSheet("font-weight: bold; font-size: 14px; color: #FFFFFF;")
         content_layout.addWidget(name)
 
         # Time range (bottom)
         start_str = study_session.start_time.strftime("%H:%M")
         end_str = study_session.end_time.strftime("%H:%M")
         time_label = QLabel(f"{start_str} – {end_str}")
-        time_label.setStyleSheet("font-size: 11px; color: #8B8BA0;")
+        time_label.setStyleSheet("font-size: 12px; color: #8B8BA0; font-weight: 500;")
         content_layout.addWidget(time_label)
 
         main_layout.addWidget(content, stretch=1)
@@ -331,23 +409,34 @@ class TimerPage(QWidget):
         right_side = QWidget()
         right_layout = QHBoxLayout(right_side)
         right_layout.setContentsMargins(0, 0, 0, 0)
-        right_layout.setSpacing(8)
+        right_layout.setSpacing(12)
         right_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # Duration
         dur = QLabel(TimerEngine.format_seconds(study_session.duration_seconds))
-        dur.setStyleSheet("font-family: 'Consolas', monospace; font-size: 13px; color: #EAEAF0;")
+        dur.setStyleSheet("font-family: 'Consolas', monospace; font-size: 14px; font-weight: bold; color: #06B6D4;")
         right_layout.addWidget(dur)
 
-        # Delete button (red, vertically centered)
+        # Delete button
         del_btn = QPushButton("×")
-        del_btn.setFixedSize(24, 24)
+        del_btn.setFixedSize(28, 28)
         del_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         del_btn.setToolTip("Delete session")
-        del_btn.setStyleSheet(
-            "background-color: #FF6B6B; color: #FFFFFF; border: none; "
-            "border-radius: 4px; font-size: 16px; font-weight: bold;"
-        )
+        del_btn.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                color: #8B8BA0;
+                border: none;
+                border-radius: 14px;
+                font-size: 20px;
+                font-weight: bold;
+                padding-bottom: 2px;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 107, 107, 0.15);
+                color: #FF6B6B;
+            }
+        """)
         del_btn.clicked.connect(lambda: self._delete_session(study_session.id))
         right_layout.addWidget(del_btn)
 
