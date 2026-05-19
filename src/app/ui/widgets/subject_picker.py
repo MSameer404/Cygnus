@@ -175,7 +175,7 @@ class SubjectDialog(QDialog):
     def __init__(self, parent=None, subject: Subject | None = None):
         super().__init__(parent)
         self.setWindowTitle("Edit Subject" if subject else "New Subject")
-        self.setFixedSize(360, 280)
+        self.setFixedSize(400, 320)
         self._color = subject.color_hex if subject else "#6C5CE7"
 
         layout = QVBoxLayout(self)

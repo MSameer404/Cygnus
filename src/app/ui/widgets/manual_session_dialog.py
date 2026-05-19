@@ -26,7 +26,7 @@ class ManualSessionDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Add Manual Session")
-        self.setFixedSize(400, 380)
+        self.setFixedSize(440, 440)
         self._setup_ui()
 
     def _setup_ui(self):
@@ -36,11 +36,11 @@ class ManualSessionDialog(QDialog):
 
         # Header
         header = QLabel("📝 Record a Past Session")
-        header.setStyleSheet("font-size: 16px; font-weight: bold; color: #FFD6E0;")
+        header.setStyleSheet("font-size: 18px; font-weight: bold; color: #FFD6E0;")
         layout.addWidget(header)
 
         hint = QLabel("Didn't have your device? Log the session here.")
-        hint.setStyleSheet("font-size: 12px; color: #CBAACD;")
+        hint.setStyleSheet("font-size: 13px; color: #CBAACD;")
         hint.setWordWrap(True)
         layout.addWidget(hint)
 
@@ -84,12 +84,6 @@ class ManualSessionDialog(QDialog):
 
         layout.addLayout(time_row)
 
-        # Notes
-        layout.addWidget(self._make_label("Notes (optional)"))
-        self._notes_input = QLineEdit()
-        self._notes_input.setPlaceholderText("e.g., Studied at library without laptop")
-        layout.addWidget(self._notes_input)
-
         layout.addSpacing(8)
 
         # Error label (hidden by default)
@@ -113,9 +107,6 @@ class ManualSessionDialog(QDialog):
 
         save_btn = QPushButton("💾 Save Session")
         save_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        save_btn.setStyleSheet(
-            "padding: 8px 18px; font-weight: bold;"
-        )
         save_btn.clicked.connect(self._save)
         btn_row.addWidget(save_btn)
 
@@ -143,7 +134,7 @@ class ManualSessionDialog(QDialog):
                 session_date=session_date,
                 start_time=start_t,
                 end_time=end_t,
-                notes=self._notes_input.text().strip(),
+                notes="",
             )
         except ValueError as e:
             self._show_error(str(e))
