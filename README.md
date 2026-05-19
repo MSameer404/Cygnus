@@ -2,20 +2,12 @@
 
 > A powerful, Yeolpumta-inspired study timer and productivity tracking application with rich analytics, built in Python and PySide6.
 
-## 📥 Download
 
-The easiest way to use Cygnus on Windows is to download the **official installer**. This will install the app to your computer, create shortcuts, and enable **automatic updates**.
-
-🚀 **[Download the Latest Windows Installer (Cygnus_Setup.exe)](https://github.com/MSameer404/Cygnus/releases/latest/download/Cygnus_Setup.exe)**
-
-Alternatively, visit the [Releases page](https://github.com/MSameer404/Cygnus/releases) to see all available versions.
-
----
 
 ## ✨ Features
 
 - **⏱️ Study Timer & Session Tracking**: Focus deeply with a Yeolpumta-inspired interface. Also supports the manual addition of past study sessions.
-- **🔄 Auto-Update**: Never miss a feature! The app automatically checks for and installs new versions directly from GitHub.
+- **🔄 Update Alerts**: Never miss a feature! The app automatically checks for new versions directly from GitHub and notifies you when an update is available.
 - **📝 To-Do List Management**: Organize your tasks with an intuitive to-do list, complete with a comprehensive Weekly View.
 - **📊 Rich Analytics & Heatmap**: Track your progress over time through detailed study heatmaps and analytics. 
 - **📸 Daily Statistics Snapshot**: Generate, view, and share/download a beautiful daily snapshot of your study statistics.
@@ -29,7 +21,6 @@ Alternatively, visit the [Releases page](https://github.com/MSameer404/Cygnus/re
 - **[Python](https://www.python.org/)** (>= 3.13)
 - **[PySide6](https://doc.qt.io/qtforpython-6/)** - Modern GUI framework (LGPL licensed).
 - **[SQLModel](https://sqlmodel.tiangolo.com/)** - Powerful database interaction combining SQL with Pydantic type hints.
-- **[PyInstaller](https://pyinstaller.org/)** - For packaging the app into a standalone Windows `.exe`.
 - **[uv](https://github.com/astral-sh/uv)** - For ultra-fast Python project and package management.
 
 ## 🚀 Running Locally & Development
@@ -65,20 +56,6 @@ To start Cygnus from the source, run:
 uv run src/app/main.py
 ```
 
-### Packaging the Application for Windows (EXE + Installer)
-
-To create a professional release:
-
-1. **Build the Executable**:
-   ```bash
-   uv run python build.py
-   ```
-   *This creates `Cygnus.exe` in the `dist` folder.*
-
-2. **Build the Installer**:
-   - Open `setup.iss` in **Inno Setup**.
-   - Click **Compile**.
-   - Your final installer `Cygnus_Setup.exe` will be ready in the `dist` folder.
 
 ## 🤝 Contributing
 

@@ -12,9 +12,18 @@ from typing import Any
 from PySide6.QtCore import QThread, Signal
 
 
+from importlib.metadata import version, PackageNotFoundError
+
+
 def get_current_version() -> str:
-    """Read version from pyproject.toml or bundled resources."""
-    # Try to read from pyproject.toml (development mode)
+    """Read version from package metadata or pyproject.toml."""
+    # Try package metadata first (if installed via pip/uv)
+    try:
+        return version("cygnus")
+    except PackageNotFoundError:
+        pass
+
+    # Try to read from pyproject.toml (in-tree running/development)
     try:
         pyproject_path = Path(__file__).parent.parent.parent.parent / "pyproject.toml"
         if pyproject_path.exists():
@@ -23,22 +32,11 @@ def get_current_version() -> str:
                     if line.strip().startswith("version"):
                         parts = line.split("=")
                         if len(parts) >= 2:
-                            version = parts[1].strip().strip('"').strip("'")
-                            return version
+                            return parts[1].strip().strip('"').strip("'")
     except Exception:
         pass
-    
-    # Try to read from bundled version file (PyInstaller mode)
-    try:
-        # In PyInstaller, files are extracted to a temp folder
-        bundle_dir = Path(getattr(sys, '_MEIPASS', Path(__file__).parent.parent.parent.parent))
-        version_path = bundle_dir / "version.txt"
-        if version_path.exists():
-            return version_path.read_text(encoding="utf-8").strip()
-    except Exception:
-        pass
-    
-    # Hardcoded fallback version (must be updated manually for each release)
+
+    # Hardcoded fallback version
     return "2.3.0"
 
 

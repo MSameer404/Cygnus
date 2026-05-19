@@ -3,7 +3,6 @@
 
 import os
 import sqlite3
-import sys
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -17,10 +16,7 @@ _APPDATA = os.environ.get("APPDATA", os.path.expanduser("~"))
 DATA_DIR = Path(_APPDATA) / "Cygnus"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-if getattr(sys, 'frozen', False):
-    DB_PATH = DATA_DIR / "cygnus_data.db"
-else:
-    DB_PATH = DATA_DIR / "cygnusdev.db"
+DB_PATH = DATA_DIR / "cygnus_data.db"
 
 _engine = create_engine(f"sqlite:///{DB_PATH}", echo=False)
 

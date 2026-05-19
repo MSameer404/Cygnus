@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from app.core.update_manager import CURRENT_VERSION, GITHUB_RELEASES_URL, pick_windows_asset
+from app.core.update_manager import CURRENT_VERSION, GITHUB_RELEASES_URL
 
 
 class UpdateDialog(QDialog):
@@ -83,36 +83,12 @@ class UpdateDialog(QDialog):
         scroll.setWidget(changelog_widget)
         layout.addWidget(scroll)
 
-        # Check if Windows asset is available
-        windows_asset = pick_windows_asset(self.assets)
-        has_windows_asset = windows_asset is not None
-
-        # Asset info and direct link
-        if has_windows_asset:
-            asset_info = QLabel(f"✓ Windows installer: <b>{windows_asset['name']}</b>")
-            asset_info.setStyleSheet("color: #1D9E75; font-size: 12px;")
-            layout.addWidget(asset_info)
-
-            # Direct download link
-            direct_link = QLabel(
-                f'<a href="{windows_asset["browser_download_url"]}">Direct download link</a>'
-            )
-            direct_link.setStyleSheet("color: #6C6CFF; font-size: 12px;")
-            direct_link.setOpenExternalLinks(True)
-            layout.addWidget(direct_link)
-        else:
-            asset_info = QLabel("✗ No Windows installer found in this release")
-            asset_info.setStyleSheet("color: #FF6B6B; font-size: 12px;")
-            layout.addWidget(asset_info)
-
         # Instructions
         instructions = QLabel(
             "<b>How to update:</b><br>"
-            "1. Click 'Open Download Page' below<br>"
-            "2. Download the new .exe file<br>"
-            "3. Close this app<br>"
-            "4. Run the new .exe file (your data will be preserved)<br>"
-            "5. Delete the old .exe file"
+            "1. Pull the latest code from GitHub (e.g., <b>git pull</b>)<br>"
+            "2. Update dependencies by running <b>uv sync</b> or <b>pip install .</b><br>"
+            "3. Restart the application"
         )
         instructions.setStyleSheet("color: #CBAACD; font-size: 12px; margin-top: 8px;")
         instructions.setWordWrap(True)
