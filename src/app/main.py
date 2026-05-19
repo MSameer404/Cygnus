@@ -91,6 +91,11 @@ def main():
 
     window.show()
 
+    # Apply saved background image (if any)
+    from app.core import background_manager as bm
+    if bm.is_bg_enabled():
+        window.reload_background()
+
     # Check for updates
     from app.core.updater import AutoUpdater
     updater = AutoUpdater()

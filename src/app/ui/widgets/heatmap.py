@@ -68,7 +68,7 @@ class HeatmapWidget(QWidget):
         gap = self.CELL_GAP
 
         # Day labels
-        painter.setPen(QColor("#A8A29E"))
+        painter.setPen(QColor("#CBAACD"))
         painter.setFont(QFont("Segoe UI", 8))
         for i, label in enumerate(self.DAY_LABELS):
             if label:
@@ -102,7 +102,7 @@ class HeatmapWidget(QWidget):
 
             # Month label at the start of each month
             if current.month != last_month and current.day <= 7:
-                painter.setPen(QColor("#A8A29E"))
+                painter.setPen(QColor("#CBAACD"))
                 painter.setFont(QFont("Segoe UI", 8))
                 month_name = calendar.month_abbr[current.month]
                 painter.drawText(int(x), int(y_offset - 6), month_name)

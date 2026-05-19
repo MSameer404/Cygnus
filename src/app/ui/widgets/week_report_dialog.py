@@ -46,7 +46,7 @@ class WeekReportDialog(QDialog):
         # Header with week range
         header = QLabel(
             f"<h2>Week Report</h2>"
-            f"<p style='color: #A8A29E; font-size: 14px;'>"
+            f"<p style='color: #CBAACD; font-size: 14px;'>"
             f"{self.week_start.strftime('%b %d')} – {self.week_end.strftime('%b %d, %Y')}"
             f"</p>"
         )
@@ -84,7 +84,7 @@ class WeekReportDialog(QDialog):
         chart_layout.setContentsMargins(16, 16, 16, 16)
 
         chart_title = QLabel("Daily Study Time")
-        chart_title.setStyleSheet("font-weight: bold; font-size: 14px; color: #F5F1E8;")
+        chart_title.setStyleSheet("font-weight: bold; font-size: 14px; color: #FFD6E0;")
         chart_layout.addWidget(chart_title)
 
         # Bar chart
@@ -103,7 +103,7 @@ class WeekReportDialog(QDialog):
         best_layout.setSpacing(4)
 
         best_title = QLabel("Best Day")
-        best_title.setStyleSheet("color: #A8A29E; font-size: 12px;")
+        best_title.setStyleSheet("color: #CBAACD; font-size: 12px;")
         best_layout.addWidget(best_title)
 
         self._best_day = QLabel("—")
@@ -119,7 +119,7 @@ class WeekReportDialog(QDialog):
         avg_layout.setSpacing(4)
 
         avg_title = QLabel("Daily Average")
-        avg_title.setStyleSheet("color: #A8A29E; font-size: 12px;")
+        avg_title.setStyleSheet("color: #CBAACD; font-size: 12px;")
         avg_layout.addWidget(avg_title)
 
         self._daily_avg = QLabel("0h 0m")
@@ -135,7 +135,7 @@ class WeekReportDialog(QDialog):
         days_layout.setSpacing(4)
 
         days_title = QLabel("Study Days")
-        days_title.setStyleSheet("color: #A8A29E; font-size: 12px;")
+        days_title.setStyleSheet("color: #CBAACD; font-size: 12px;")
         days_layout.addWidget(days_title)
 
         self._study_days = QLabel("0/7")

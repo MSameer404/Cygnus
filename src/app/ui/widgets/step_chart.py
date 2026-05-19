@@ -18,8 +18,8 @@ class StepChart(QWidget):
         super().__init__(parent)
         self._sessions: list[dict] = []  # List of dicts with start_time, end_time
         self._line_color = QColor("#6C5CE7")  # Purple accent
-        self._grid_color = QColor("#2A2C31")
-        self._text_color = QColor("#A8A29E")
+        self._grid_color = QColor("#3E2740")
+        self._text_color = QColor("#CBAACD")
         self._bg_color = QColor("#1A1A24")
         self.setMinimumHeight(250)
 

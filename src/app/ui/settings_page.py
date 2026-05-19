@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QComboBox,
+    QSlider,
 )
 
 from app.core import dday_manager, session_manager, subject_manager
@@ -59,7 +60,7 @@ class CollapsibleSection(QWidget):
                 background-color: #2A2A3A;
                 border: 1px solid #3A3A50;
                 border-radius: 8px;
-                color: #F5F1E8;
+                color: #FFD6E0;
                 font-weight: bold;
                 font-size: 14px;
             }
@@ -185,7 +186,7 @@ class SettingsPage(QWidget):
         self._theme_section.add_layout(self._theme_container)
 
         lbl = QLabel("Select Theme:")
-        lbl.setStyleSheet("color: #A8A29E; font-size: 13px; margin-bottom: 4px;")
+        lbl.setStyleSheet("color: #CBAACD; font-size: 13px; margin-bottom: 4px;")
         self._theme_container.addWidget(lbl)
 
         from app.core.theme_manager import THEMES
@@ -206,11 +207,11 @@ class SettingsPage(QWidget):
             
             accent = t_colors["accent"]
             is_active = (t_name == current_theme)
-            border_color = accent if is_active else "#3F4147"
+            border_color = accent if is_active else "#5A3A5E"
             
             btn.setStyleSheet(f"""
                 QPushButton {{
-                    background-color: #2A2C31;
+                    background-color: #3E2740;
                     border: 2px solid {border_color};
                     border-radius: 10px;
                     color: {accent};
@@ -239,6 +240,14 @@ class SettingsPage(QWidget):
 
         layout.addWidget(self._theme_section)
 
+        # ========== Background Image (Collapsible) ==========
+        self._bg_section = CollapsibleSection("Background Image")
+        self._bg_container = QVBoxLayout()
+        self._bg_container.setSpacing(12)
+        self._bg_section.add_layout(self._bg_container)
+        self._build_bg_ui()
+        layout.addWidget(self._bg_section)
+
         # ========== Data Management (Compact) ==========
         data_frame = QFrame()
         data_frame.setProperty("class", "card")
@@ -247,7 +256,7 @@ class SettingsPage(QWidget):
         data_layout.setSpacing(8)
 
         data_header = QLabel("📦 Data")
-        data_header.setStyleSheet("font-weight: bold; font-size: 14px; color: #F5F1E8;")
+        data_header.setStyleSheet("font-weight: bold; font-size: 14px; color: #FFD6E0;")
         data_layout.addWidget(data_header)
 
         db_info = QLabel(f"Database: {DB_PATH}")
@@ -283,7 +292,7 @@ class SettingsPage(QWidget):
         about_layout.setSpacing(8)
 
         about_header = QLabel(f"About — v{CURRENT_VERSION}")
-        about_header.setStyleSheet("font-weight: bold; font-size: 14px; color: #F5F1E8;")
+        about_header.setStyleSheet("font-weight: bold; font-size: 14px; color: #FFD6E0;")
         about_layout.addWidget(about_header)
 
         about = QLabel("Cygnus — A Yeolpumta-inspired study timer.\nBuilt with Python, PySide6, and SQLModel.")
@@ -300,7 +309,7 @@ class SettingsPage(QWidget):
         update_row.addWidget(self._check_update_btn)
 
         self._update_status = QLabel("")
-        self._update_status.setStyleSheet("font-size: 12px; color: #A8A29E;")
+        self._update_status.setStyleSheet("font-size: 12px; color: #CBAACD;")
         update_row.addWidget(self._update_status)
         update_row.addStretch()
 
@@ -425,7 +434,7 @@ class SettingsPage(QWidget):
         card.setProperty("class", "card")
         card.setStyleSheet("""
             QFrame {
-                background-color: #2A2C31;
+                background-color: #3E2740;
                 border-radius: 8px;
                 border-left: 3px solid #6C5CE7;
             }
@@ -435,7 +444,7 @@ class SettingsPage(QWidget):
         card_layout.setSpacing(6)
 
         title_lbl = QLabel(title)
-        title_lbl.setStyleSheet("font-weight: bold; font-size: 13px; color: #F5F1E8;")
+        title_lbl.setStyleSheet("font-weight: bold; font-size: 13px; color: #FFD6E0;")
         card_layout.addWidget(title_lbl)
 
         content_lbl = QLabel(content)
@@ -616,6 +625,166 @@ class SettingsPage(QWidget):
             dday_manager.delete_event(event.id)
             self._refresh_dday()
 
+    # ---------- Background Image ----------
+
+    def _build_bg_ui(self):
+        """Build the background image controls UI."""
+        from app.core import background_manager as bm
+
+        # Preview label
+        self._bg_preview = QLabel()
+        self._bg_preview.setFixedSize(320, 160)
+        self._bg_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._bg_preview.setStyleSheet("""
+            border: 2px dashed #5A3A5E;
+            border-radius: 12px;
+            background-color: rgba(42, 44, 49, 0.5);
+            color: #CBAACD;
+            font-size: 13px;
+        """)
+        self._bg_preview.setText("No background image set.\nClick 'Choose Image' to browse.")
+        self._bg_container.addWidget(self._bg_preview, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        # Buttons row
+        btn_row = QHBoxLayout()
+        btn_row.setSpacing(10)
+        choose_btn = QPushButton("🖼  Choose Image")
+        choose_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        choose_btn.clicked.connect(self._pick_bg_image)
+        btn_row.addWidget(choose_btn)
+
+        self._remove_bg_btn = QPushButton("✕  Remove")
+        self._remove_bg_btn.setProperty("class", "danger-btn")
+        self._remove_bg_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._remove_bg_btn.clicked.connect(self._remove_bg_image)
+        self._remove_bg_btn.setEnabled(bm.is_bg_enabled())
+        btn_row.addWidget(self._remove_bg_btn)
+        btn_row.addStretch()
+        self._bg_container.addLayout(btn_row)
+
+        # Blur slider
+        blur_lbl_row = QHBoxLayout()
+        blur_lbl = QLabel("Blur Intensity")
+        blur_lbl.setStyleSheet("color: #CBAACD; font-size: 13px;")
+        self._blur_val_lbl = QLabel(f"{bm.get_blur_radius()}")
+        self._blur_val_lbl.setStyleSheet("color: #FFD6E0; font-size: 13px; font-weight: 600; min-width: 28px;")
+        blur_lbl_row.addWidget(blur_lbl)
+        blur_lbl_row.addStretch()
+        blur_lbl_row.addWidget(self._blur_val_lbl)
+        self._bg_container.addLayout(blur_lbl_row)
+
+        self._blur_slider = QSlider(Qt.Orientation.Horizontal)
+        self._blur_slider.setMinimum(0)
+        self._blur_slider.setMaximum(40)
+        self._blur_slider.setValue(bm.get_blur_radius())
+        self._blur_slider.setStyleSheet("""
+            QSlider::groove:horizontal {
+                height: 6px;
+                background: #5A3A5E;
+                border-radius: 3px;
+            }
+            QSlider::handle:horizontal {
+                background: #FF758F;
+                border: none;
+                width: 18px;
+                height: 18px;
+                margin: -6px 0;
+                border-radius: 9px;
+            }
+            QSlider::sub-page:horizontal {
+                background: #FF758F;
+                border-radius: 3px;
+            }
+        """)
+        self._blur_slider.valueChanged.connect(self._on_blur_changed)
+        self._bg_container.addWidget(self._blur_slider)
+
+        # Brightness / overlay opacity slider
+        op_lbl_row = QHBoxLayout()
+        op_lbl = QLabel("Image Brightness")
+        op_lbl.setStyleSheet("color: #CBAACD; font-size: 13px;")
+        opacity_pct = int(bm.get_opacity() * 100)
+        self._op_val_lbl = QLabel(f"{opacity_pct}%")
+        self._op_val_lbl.setStyleSheet("color: #FFD6E0; font-size: 13px; font-weight: 600; min-width: 36px;")
+        op_lbl_row.addWidget(op_lbl)
+        op_lbl_row.addStretch()
+        op_lbl_row.addWidget(self._op_val_lbl)
+        self._bg_container.addLayout(op_lbl_row)
+
+        self._op_slider = QSlider(Qt.Orientation.Horizontal)
+        self._op_slider.setMinimum(0)
+        self._op_slider.setMaximum(90)    # 0% = full brightness, 90% = near-black
+        self._op_slider.setValue(opacity_pct)
+        self._op_slider.setStyleSheet(self._blur_slider.styleSheet())
+        self._op_slider.valueChanged.connect(self._on_opacity_changed)
+        self._bg_container.addWidget(self._op_slider)
+
+        # Load preview if image exists
+        self._refresh_bg_preview()
+
+    def _refresh_bg_preview(self):
+        """Show a thumbnail preview of the current background image."""
+        from app.core import background_manager as bm
+        if bm.is_bg_enabled():
+            from PySide6.QtGui import QPixmap
+            px = QPixmap(str(bm.get_bg_image_path()))
+            if not px.isNull():
+                px = px.scaled(
+                    320, 160,
+                    Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+                    Qt.TransformationMode.SmoothTransformation
+                )
+                # Center-crop
+                x = (px.width() - 320) // 2
+                y = (px.height() - 160) // 2
+                px = px.copy(x, y, 320, 160)
+                self._bg_preview.setPixmap(px)
+                self._bg_preview.setText("")
+                self._remove_bg_btn.setEnabled(True)
+                return
+        self._bg_preview.clear()
+        self._bg_preview.setText("No background image set.\nClick 'Choose Image' to browse.")
+        self._remove_bg_btn.setEnabled(False)
+
+    def _pick_bg_image(self):
+        from app.core import background_manager as bm
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Select Background Image", "",
+            "Images (*.png *.jpg *.jpeg *.bmp *.webp)"
+        )
+        if not path:
+            return
+        ok = bm.save_bg_image(path)
+        if ok:
+            self._refresh_bg_preview()
+            self._apply_bg_to_window()
+        else:
+            QMessageBox.warning(self, "Error", "Could not load the selected image.")
+
+    def _remove_bg_image(self):
+        from app.core import background_manager as bm
+        bm.remove_bg_image()
+        self._refresh_bg_preview()
+        self._apply_bg_to_window()
+
+    def _on_blur_changed(self, value: int):
+        from app.core import background_manager as bm
+        self._blur_val_lbl.setText(str(value))
+        bm.save_blur(value)
+        self._apply_bg_to_window()
+
+    def _on_opacity_changed(self, value: int):
+        from app.core import background_manager as bm
+        self._op_val_lbl.setText(f"{value}%")
+        bm.save_opacity(value / 100.0)
+        self._apply_bg_to_window()
+
+    def _apply_bg_to_window(self):
+        """Trigger the main window to reload and repaint the background."""
+        window = self.window()
+        if hasattr(window, "reload_background"):
+            window.reload_background()
+
     # ---------- Appearance / Theme ----------
     def _change_theme(self, theme_name: str):
         from app.core.theme_manager import apply_theme, THEMES
@@ -630,11 +799,11 @@ class SettingsPage(QWidget):
             t_colors = THEMES[name]
             accent = t_colors["accent"]
             is_active = (name == theme_name)
-            border_color = accent if is_active else "#3F4147"
+            border_color = accent if is_active else "#5A3A5E"
             
             btn.setStyleSheet(f"""
                 QPushButton {{
-                    background-color: #2A2C31;
+                    background-color: #3E2740;
                     border: 2px solid {border_color};
                     border-radius: 10px;
                     color: {accent};

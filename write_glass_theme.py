@@ -1,4 +1,4 @@
-/* Cygnus — Glassmorphism Theme */
+GLASS_THEME = """/* Cygnus — Glassmorphism Theme */
 * { font-family: "Segoe UI", "Inter", sans-serif; font-size: 14px; }
 
 QMainWindow { background-color: #2D1B2E; }
@@ -430,3 +430,9 @@ QFrame#syllabusAddArea { background: rgba(30, 10, 35, 0.55); border-top: 1px sol
 QComboBox.syllabus-priority-high { color: #FF8FA3; border-color: rgba(255, 117, 143, 0.5); }
 QComboBox.syllabus-priority-medium { color: #FCD34D; border-color: rgba(245, 158, 11, 0.5); }
 QComboBox.syllabus-priority-low { color: #A0A0B8; border-color: rgba(139, 139, 160, 0.4); }
+"""
+
+with open('/home/sameer/Projects/SaaS/Cygnus/src/app/assets/theme.qss', 'w', encoding='utf-8') as f:
+    f.write(GLASS_THEME)
+
+print("Glassmorphism theme written successfully!")

@@ -230,7 +230,7 @@ class TaskPage(QWidget):
         self._tasks = []
         for t in task_manager.list_all_tasks():
             subject_name = ""
-            subject_color = "#A8A29E"
+            subject_color = "#CBAACD"
             if t.subject_id:
                 s = subject_manager.get_subject(t.subject_id)
                 if s:
@@ -491,7 +491,7 @@ class TaskPage(QWidget):
         title = QLabel()
         title.setObjectName("title")
         title.setWordWrap(True)
-        title.setStyleSheet("font-size: 15px; font-weight: 500; color: #F5F1E8;")
+        title.setStyleSheet("font-size: 15px; font-weight: 500; color: #FFD6E0;")
         left.addWidget(title)
 
         subj = QLabel()
@@ -519,7 +519,7 @@ class TaskPage(QWidget):
 
         due = QLabel()
         due.setObjectName("due_date")
-        due.setStyleSheet("font-size: 12px; color: #A8A29E;")
+        due.setStyleSheet("font-size: 12px; color: #CBAACD;")
         due.setMinimumWidth(80)
         due.setMaximumWidth(90)
         due.setAlignment(Qt.AlignmentFlag.AlignCenter)

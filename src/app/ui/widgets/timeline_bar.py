@@ -51,7 +51,7 @@ class TimelineBar(QWidget):
         # Background track
         track = QPainterPath()
         track.addRoundedRect(QRectF(x_offset, bar_y, w, bar_h), 6, 6)
-        painter.fillPath(track, QColor("#2A2C31"))
+        painter.fillPath(track, QColor("#3E2740"))
 
         # Hour markers
         painter.setPen(QPen(QColor("#3A3A50"), 1))
@@ -61,7 +61,7 @@ class TimelineBar(QWidget):
             x = x_offset + (hour / 24) * w
             painter.drawLine(int(x), bar_y, int(x), bar_y + bar_h)
             if hour < 24:
-                painter.setPen(QPen(QColor("#A8A29E"), 1))
+                painter.setPen(QPen(QColor("#CBAACD"), 1))
                 painter.drawText(
                     QRectF(x - 12, bar_y + bar_h + 2, 24, 12),
                     Qt.AlignmentFlag.AlignCenter,
