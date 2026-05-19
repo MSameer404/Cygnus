@@ -107,6 +107,17 @@ def get_sessions_for_range(start_date: date, end_date: date) -> list[StudySessio
         return list(session.exec(stmt).all())
 
 
+def get_recent_sessions(limit: int = 10) -> list[StudySession]:
+    """Get the most recent study sessions across all dates."""
+    with get_session() as session:
+        stmt = (
+            select(StudySession)
+            .order_by(StudySession.start_time.desc())
+            .limit(limit)
+        )
+        return list(session.exec(stmt).all())
+
+
 def get_total_seconds_for_date(target_date: date) -> int:
     """Get total study seconds for a given date."""
     sessions = get_sessions_for_date(target_date)

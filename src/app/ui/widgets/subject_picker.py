@@ -43,13 +43,13 @@ class SubjectPicker(QWidget):
         scroll.setWidgetResizable(True)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        scroll.setFixedHeight(85)
+        scroll.setFixedHeight(75)
 
         self._container = QWidget()
         self._layout = QHBoxLayout(self._container)
         self._layout.setContentsMargins(0, 0, 0, 0)
-        self._layout.setSpacing(8)
-        self._layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self._layout.setSpacing(12)
+        self._layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         scroll.setWidget(self._container)
         outer.addWidget(scroll)
@@ -82,14 +82,14 @@ class SubjectPicker(QWidget):
             )
             self._layout.addWidget(card)
 
-        # "+" button
-        add_btn = QPushButton("+")
-        add_btn.setProperty("class", "subject-card-add")
-        add_btn.setFixedSize(50, 75)
-        add_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        add_btn.setToolTip("Add subject")
-        add_btn.clicked.connect(self._add_subject_dialog)
-        self._layout.addWidget(add_btn)
+        # # "+" button
+        # add_btn = QPushButton("+")
+        # add_btn.setProperty("class", "subject-card-add")
+        # add_btn.setFixedSize(50, 75)
+        # add_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        # add_btn.setToolTip("Add subject")
+        # add_btn.clicked.connect(self._add_subject_dialog)
+        # self._layout.addWidget(add_btn)
 
         # Auto-select first if none selected
         if self._selected_id is None and subjects:

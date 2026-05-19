@@ -52,6 +52,12 @@ class TimerPage(QWidget):
 
         # Create splitter for resizable panels
         splitter = QSplitter(Qt.Orientation.Horizontal)
+        splitter.setStyleSheet("""
+            QSplitter::handle {
+                background-color: rgba(255, 255, 255, 0.1);
+                width: 1px;
+            }
+        """)
 
         # ========== LEFT PANEL: Timer ==========
         left_panel = QWidget()
@@ -82,11 +88,11 @@ class TimerPage(QWidget):
 
         self._timer_label = QLabel("00:00:00")
         self._timer_label.setStyleSheet("""
-            font-size: 120px;
+            font-size: 96px;
             font-family: 'Consolas', monospace;
             font-weight: bold;
             color: #FFFFFF;
-            letter-spacing: 8px;
+            letter-spacing: 4px;
         """)
         self._timer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         timer_layout.addWidget(self._timer_label)
@@ -157,31 +163,50 @@ class TimerPage(QWidget):
         sidebar_layout.setContentsMargins(0, 0, 0, 0)
         sidebar_layout.setSpacing(8)
 
-        # Sidebar header with toggle button
+        # Sidebar header
         header = QHBoxLayout()
-        header.setContentsMargins(8, 0, 8, 0)
+        header.setContentsMargins(8, 16, 8, 16)
+        header.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter)
 
-        sessions_title = QLabel("Today's Sessions")
-        sessions_title.setProperty("class", "subheading")
-        header.addWidget(sessions_title)
         header.addStretch()
 
-        add_session_btn = QPushButton("＋")
-        add_session_btn.setFixedSize(28, 28)
-        add_session_btn.setProperty("class", "icon-btn")
-        add_session_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        add_session_btn.setToolTip("Add session")
-        add_session_btn.clicked.connect(self._open_manual_session)
-        header.addWidget(add_session_btn)
+        sessions_title = QLabel("Session History")
+        sessions_title.setStyleSheet("""
+            font-size: 16px; 
+            font-weight: 600; 
+            color: #EAEAF0; 
+            letter-spacing: 0.5px;
+        """)
+        header.addWidget(sessions_title, alignment=Qt.AlignmentFlag.AlignVCenter)
+        
+        header.addSpacing(16)
 
-        # Collapse/expand button
-        self._toggle_btn = QPushButton("→")
-        self._toggle_btn.setFixedSize(28, 28)
-        self._toggle_btn.setProperty("class", "icon-btn")
-        self._toggle_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._toggle_btn.setToolTip("Collapse sidebar")
-        self._toggle_btn.clicked.connect(self._toggle_sidebar)
-        header.addWidget(self._toggle_btn)
+        add_session_btn = QPushButton("＋ Add")
+        add_session_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        add_session_btn.setToolTip("Add session manually")
+        add_session_btn.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                color: #A78BFA;
+                border: 1px solid #4C3D8A;
+                border-radius: 12px;
+                font-size: 12px;
+                font-weight: bold;
+                padding: 4px 12px 5px 12px;
+            }
+            QPushButton:hover {
+                background-color: rgba(124, 58, 237, 0.15);
+                color: #C4B5FD;
+                border-color: #7C3AED;
+            }
+            QPushButton:pressed {
+                background-color: rgba(124, 58, 237, 0.25);
+            }
+        """)
+        add_session_btn.clicked.connect(self._open_manual_session)
+        header.addWidget(add_session_btn, alignment=Qt.AlignmentFlag.AlignVCenter)
+        
+        header.addStretch()
 
         sidebar_layout.addLayout(header)
 
@@ -205,15 +230,7 @@ class TimerPage(QWidget):
 
         main_layout.addWidget(splitter, stretch=1)
 
-        # Collapsed state button (shown when sidebar is hidden)
-        self._expand_btn = QPushButton("←")
-        self._expand_btn.setFixedSize(32, 32)
-        self._expand_btn.setProperty("class", "icon-btn")
-        self._expand_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._expand_btn.setToolTip("Show sessions")
-        self._expand_btn.clicked.connect(self._toggle_sidebar)
-        self._expand_btn.hide()
-        main_layout.addWidget(self._expand_btn, alignment=Qt.AlignmentFlag.AlignTop)
+
 
     def _connect_signals(self):
         self.subject_picker.subject_selected.connect(self._on_subject_selected)
@@ -308,11 +325,11 @@ class TimerPage(QWidget):
             )
             self._status_label.setStyleSheet("font-size: 18px; color: #06B6D4; font-weight: 600; letter-spacing: 1px;")
             self._timer_label.setStyleSheet("""
-                font-size: 120px;
+                font-size: 96px;
                 font-family: 'Consolas', monospace;
                 font-weight: bold;
                 color: #06B6D4;
-                letter-spacing: 8px;
+                letter-spacing: 4px;
             """)
         else:  # idle
             self._session_btn.setText("▶  START")
@@ -333,35 +350,39 @@ class TimerPage(QWidget):
             self.subject_picker.set_interactive(True)
             self._timer_label.setText("00:00:00")
             self._timer_label.setStyleSheet("""
-                font-size: 120px;
+                font-size: 96px;
                 font-family: 'Consolas', monospace;
                 font-weight: bold;
                 color: #FFFFFF;
-                letter-spacing: 8px;
+                letter-spacing: 4px;
             """)
             self._status_label.setText("Ready to study")
             self._status_label.setStyleSheet("font-size: 18px; color: #A78BFA; font-weight: 600; letter-spacing: 1px;")
 
     def _refresh_sessions(self):
-        """Reload today's sessions from DB."""
+        """Reload recent sessions from DB."""
         # Clear existing
         while self._sessions_layout.count():
             item = self._sessions_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
 
-        sessions = session_manager.get_sessions_for_date(date.today())
-        total = sum(s.duration_seconds for s in sessions)
+        # Update Today's Total
+        today_sessions = session_manager.get_sessions_for_date(date.today())
+        total = sum(s.duration_seconds for s in today_sessions)
         self._today_label.setText(f"Today: {TimerEngine.format_seconds_short(total)}")
 
-        if not sessions:
-            empty = QLabel("No sessions yet today. Start studying!")
+        # Fetch the last 10 sessions for history
+        recent_sessions = session_manager.get_recent_sessions(limit=10)
+
+        if not recent_sessions:
+            empty = QLabel("No sessions yet. Start studying!")
             empty.setProperty("class", "muted")
             empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
             self._sessions_layout.addWidget(empty)
             return
 
-        for s in reversed(sessions):  # newest first
+        for s in recent_sessions:
             card = self._make_session_card(s)
             self._sessions_layout.addWidget(card)
 
@@ -397,9 +418,14 @@ class TimerPage(QWidget):
         content_layout.addWidget(name)
 
         # Time range (bottom)
+        if study_session.start_time.date() == date.today():
+            date_str = "Today"
+        else:
+            date_str = study_session.start_time.strftime("%b %d")
+            
         start_str = study_session.start_time.strftime("%H:%M")
         end_str = study_session.end_time.strftime("%H:%M")
-        time_label = QLabel(f"{start_str} – {end_str}")
+        time_label = QLabel(f"{date_str}, {start_str} – {end_str}")
         time_label.setStyleSheet("font-size: 12px; color: #8B8BA0; font-weight: 500;")
         content_layout.addWidget(time_label)
 
@@ -470,11 +496,4 @@ class TimerPage(QWidget):
         self._refresh_sessions()
         self.subject_picker.refresh()
 
-    def _toggle_sidebar(self):
-        """Toggle sidebar visibility."""
-        if self._sidebar.isVisible():
-            self._sidebar.hide()
-            self._expand_btn.show()
-        else:
-            self._sidebar.show()
-            self._expand_btn.hide()
+

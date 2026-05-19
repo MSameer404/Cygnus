@@ -20,7 +20,7 @@ class SubjectCard(QFrame):
 
     def _setup_ui(self):
         self.setProperty("class", "subject-card")
-        self.setFixedSize(130, 75)
+        self.setFixedSize(140, 65)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
 
         # Main horizontal layout: accent bar + content
@@ -30,26 +30,26 @@ class SubjectCard(QFrame):
 
         # Left colored accent bar
         accent_bar = QWidget()
-        accent_bar.setFixedWidth(4)
-        accent_bar.setStyleSheet(f"background-color: {self._color_hex}; border-radius: 2px;")
+        accent_bar.setFixedWidth(5)
+        accent_bar.setStyleSheet(f"background-color: {self._color_hex}; border-top-left-radius: 8px; border-bottom-left-radius: 8px;")
         main_layout.addWidget(accent_bar)
 
         # Content container
         content = QWidget()
         content_layout = QVBoxLayout(content)
-        content_layout.setContentsMargins(10, 8, 10, 8)
-        content_layout.setSpacing(4)
+        content_layout.setContentsMargins(12, 10, 12, 10)
+        content_layout.setSpacing(2)
 
         # Subject name
         name_label = QLabel(self._name)
         name_label.setProperty("class", "subject-card-name")
-        name_label.setStyleSheet("font-weight: bold; font-size: 13px; color: #EAEAF0;")
+        name_label.setStyleSheet("font-weight: 600; font-size: 14px; color: #FFFFFF; letter-spacing: 0.3px;")
         content_layout.addWidget(name_label)
 
         # Today's study time
         time_label = QLabel(self._today_time_text)
         time_label.setProperty("class", "subject-card-time")
-        time_label.setStyleSheet("font-size: 11px; color: #8B8BA0;")
+        time_label.setStyleSheet("font-size: 11px; color: #8B8BA0; font-weight: 500;")
         content_layout.addWidget(time_label)
 
         content_layout.addStretch()
