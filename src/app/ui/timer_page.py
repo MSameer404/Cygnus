@@ -76,7 +76,7 @@ class TimerPage(QWidget):
         timer_container.setObjectName("timerContainer")
         timer_container.setStyleSheet("""
             QFrame#timerContainer {
-                background-color: rgba(30, 30, 48, 0.4);
+                background-color: rgba(42, 44, 49, 0.4);
                 border: 1px solid rgba(255, 255, 255, 0.05);
                 border-radius: 32px;
             }
@@ -91,7 +91,7 @@ class TimerPage(QWidget):
             font-size: 96px;
             font-family: 'Consolas', monospace;
             font-weight: bold;
-            color: #FFFFFF;
+            color: #ECFDF5;
             letter-spacing: 4px;
         """)
         self._timer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -99,7 +99,7 @@ class TimerPage(QWidget):
 
         # Status label
         self._status_label = QLabel("Ready to study")
-        self._status_label.setStyleSheet("font-size: 18px; color: #A78BFA; font-weight: 600; letter-spacing: 1px;")
+        self._status_label.setStyleSheet("font-size: 18px; color: #10B981; font-weight: 600; letter-spacing: 1px;")
         self._status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         timer_layout.addWidget(self._status_label)
 
@@ -116,8 +116,8 @@ class TimerPage(QWidget):
         self._session_btn.setMinimumWidth(240)
         self._session_btn.setStyleSheet("""
             QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #10B981, stop:1 #059669);
-                color: #FFFFFF;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #10B981, stop:1 #34D399);
+                color: #ECFDF5;
                 border-radius: 32px;
                 font-size: 20px;
                 font-weight: bold;
@@ -139,9 +139,9 @@ class TimerPage(QWidget):
         self._today_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._today_label.setStyleSheet("""
             font-size: 16px;
-            color: #C4B5FD;
+            color: #10B981;
             font-weight: bold;
-            background-color: rgba(124, 58, 237, 0.15);
+            background-color: rgba(16, 185, 129, 0.15);
             border-radius: 16px;
             padding: 8px 24px;
         """)
@@ -174,7 +174,7 @@ class TimerPage(QWidget):
         sessions_title.setStyleSheet("""
             font-size: 16px; 
             font-weight: 600; 
-            color: #EAEAF0; 
+            color: #ECFDF5; 
             letter-spacing: 0.5px;
         """)
         header.addWidget(sessions_title, alignment=Qt.AlignmentFlag.AlignVCenter)
@@ -187,20 +187,20 @@ class TimerPage(QWidget):
         add_session_btn.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
-                color: #A78BFA;
-                border: 1px solid #4C3D8A;
+                color: #10B981;
+                border: 1px solid #065F46;
                 border-radius: 12px;
                 font-size: 12px;
                 font-weight: bold;
                 padding: 4px 12px 5px 12px;
             }
             QPushButton:hover {
-                background-color: rgba(124, 58, 237, 0.15);
-                color: #C4B5FD;
-                border-color: #7C3AED;
+                background-color: rgba(16, 185, 129, 0.15);
+                color: #10B981;
+                border-color: #10B981;
             }
             QPushButton:pressed {
-                background-color: rgba(124, 58, 237, 0.25);
+                background-color: rgba(16, 185, 129, 0.25);
             }
         """)
         add_session_btn.clicked.connect(self._open_manual_session)
@@ -307,15 +307,15 @@ class TimerPage(QWidget):
             self._session_btn.setText("⏹  STOP & SAVE")
             self._session_btn.setStyleSheet("""
                 QPushButton {
-                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #F43F5E, stop:1 #E11D48);
-                    color: #FFFFFF;
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #10B981, stop:1 #34D399);
+                    color: #ECFDF5;
                     border-radius: 32px;
                     font-size: 20px;
                     font-weight: bold;
                     letter-spacing: 2px;
                 }
                 QPushButton:hover {
-                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FB7185, stop:1 #F43F5E);
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #34D399, stop:1 #10B981);
                     border: 2px solid #FDA4AF;
                 }
             """)
@@ -323,20 +323,20 @@ class TimerPage(QWidget):
             self._status_label.setText(
                 f"Studying: {self._current_subject.name}" if self._current_subject else "Studying..."
             )
-            self._status_label.setStyleSheet("font-size: 18px; color: #06B6D4; font-weight: 600; letter-spacing: 1px;")
+            self._status_label.setStyleSheet("font-size: 18px; color: #10B981; font-weight: 600; letter-spacing: 1px;")
             self._timer_label.setStyleSheet("""
                 font-size: 96px;
                 font-family: 'Consolas', monospace;
                 font-weight: bold;
-                color: #06B6D4;
+                color: #10B981;
                 letter-spacing: 4px;
             """)
         else:  # idle
             self._session_btn.setText("▶  START")
             self._session_btn.setStyleSheet("""
                 QPushButton {
-                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #10B981, stop:1 #059669);
-                    color: #FFFFFF;
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #10B981, stop:1 #34D399);
+                    color: #ECFDF5;
                     border-radius: 32px;
                     font-size: 20px;
                     font-weight: bold;
@@ -353,11 +353,11 @@ class TimerPage(QWidget):
                 font-size: 96px;
                 font-family: 'Consolas', monospace;
                 font-weight: bold;
-                color: #FFFFFF;
+                color: #ECFDF5;
                 letter-spacing: 4px;
             """)
             self._status_label.setText("Ready to study")
-            self._status_label.setStyleSheet("font-size: 18px; color: #A78BFA; font-weight: 600; letter-spacing: 1px;")
+            self._status_label.setStyleSheet("font-size: 18px; color: #10B981; font-weight: 600; letter-spacing: 1px;")
 
     def _refresh_sessions(self):
         """Reload recent sessions from DB."""
@@ -414,7 +414,7 @@ class TimerPage(QWidget):
 
         # Subject name (top)
         name = QLabel(subj.name if subj else "Unknown")
-        name.setStyleSheet("font-weight: bold; font-size: 14px; color: #FFFFFF;")
+        name.setStyleSheet("font-weight: bold; font-size: 14px; color: #ECFDF5;")
         content_layout.addWidget(name)
 
         # Time range (bottom)
@@ -426,7 +426,7 @@ class TimerPage(QWidget):
         start_str = study_session.start_time.strftime("%H:%M")
         end_str = study_session.end_time.strftime("%H:%M")
         time_label = QLabel(f"{date_str}, {start_str} – {end_str}")
-        time_label.setStyleSheet("font-size: 12px; color: #8B8BA0; font-weight: 500;")
+        time_label.setStyleSheet("font-size: 12px; color: #6EE7B7; font-weight: 500;")
         content_layout.addWidget(time_label)
 
         main_layout.addWidget(content, stretch=1)
@@ -440,7 +440,7 @@ class TimerPage(QWidget):
 
         # Duration
         dur = QLabel(TimerEngine.format_seconds(study_session.duration_seconds))
-        dur.setStyleSheet("font-family: 'Consolas', monospace; font-size: 14px; font-weight: bold; color: #06B6D4;")
+        dur.setStyleSheet("font-family: 'Consolas', monospace; font-size: 14px; font-weight: bold; color: #10B981;")
         right_layout.addWidget(dur)
 
         # Delete button
@@ -451,7 +451,7 @@ class TimerPage(QWidget):
         del_btn.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
-                color: #8B8BA0;
+                color: #6EE7B7;
                 border: none;
                 border-radius: 14px;
                 font-size: 20px;

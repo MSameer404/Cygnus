@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (
     QSplitter,
     QVBoxLayout,
     QWidget,
+    QComboBox,
 )
 
 from app.core import dday_manager, session_manager, subject_manager
@@ -58,7 +59,7 @@ class CollapsibleSection(QWidget):
                 background-color: #2A2A3A;
                 border: 1px solid #3A3A50;
                 border-radius: 8px;
-                color: #EAEAF0;
+                color: #F5F1E8;
                 font-weight: bold;
                 font-size: 14px;
             }
@@ -176,6 +177,68 @@ class SettingsPage(QWidget):
 
         layout.addWidget(self._dday_section)
 
+        # ========== Appearance (Theme) ==========
+        self._theme_section = CollapsibleSection("Appearance (Theme)")
+
+        self._theme_container = QVBoxLayout()
+        self._theme_container.setSpacing(8)
+        self._theme_section.add_layout(self._theme_container)
+
+        lbl = QLabel("Select Theme:")
+        lbl.setStyleSheet("color: #A8A29E; font-size: 13px; margin-bottom: 4px;")
+        self._theme_container.addWidget(lbl)
+
+        from app.core.theme_manager import THEMES
+        from PySide6.QtWidgets import QGridLayout
+        
+        current_theme = load_setting("current_theme", "Fox (Amber)")
+        
+        grid = QGridLayout()
+        grid.setSpacing(12)
+        
+        self._theme_buttons = {}
+        
+        row, col = 0, 0
+        for t_name, t_colors in THEMES.items():
+            btn = QPushButton(f"●  {t_name}")
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setFixedSize(160, 44)
+            
+            accent = t_colors["accent"]
+            is_active = (t_name == current_theme)
+            border_color = accent if is_active else "#3F4147"
+            
+            btn.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: #2A2C31;
+                    border: 2px solid {border_color};
+                    border-radius: 10px;
+                    color: {accent};
+                    font-weight: 600;
+                    text-align: left;
+                    padding-left: 14px;
+                    font-size: 13px;
+                }}
+                QPushButton:hover {{
+                    border-color: {accent};
+                    background-color: #313339;
+                }}
+            """)
+            
+            # Use default parameter binding for lambda to capture current loop value
+            btn.clicked.connect(lambda checked=False, theme=t_name: self._change_theme(theme))
+            self._theme_buttons[t_name] = btn
+            grid.addWidget(btn, row, col)
+            
+            col += 1
+            if col > 1:
+                col = 0
+                row += 1
+                
+        self._theme_container.addLayout(grid)
+
+        layout.addWidget(self._theme_section)
+
         # ========== Data Management (Compact) ==========
         data_frame = QFrame()
         data_frame.setProperty("class", "card")
@@ -184,7 +247,7 @@ class SettingsPage(QWidget):
         data_layout.setSpacing(8)
 
         data_header = QLabel("📦 Data")
-        data_header.setStyleSheet("font-weight: bold; font-size: 14px; color: #EAEAF0;")
+        data_header.setStyleSheet("font-weight: bold; font-size: 14px; color: #F5F1E8;")
         data_layout.addWidget(data_header)
 
         db_info = QLabel(f"Database: {DB_PATH}")
@@ -220,7 +283,7 @@ class SettingsPage(QWidget):
         about_layout.setSpacing(8)
 
         about_header = QLabel(f"About — v{CURRENT_VERSION}")
-        about_header.setStyleSheet("font-weight: bold; font-size: 14px; color: #EAEAF0;")
+        about_header.setStyleSheet("font-weight: bold; font-size: 14px; color: #F5F1E8;")
         about_layout.addWidget(about_header)
 
         about = QLabel("Cygnus — A Yeolpumta-inspired study timer.\nBuilt with Python, PySide6, and SQLModel.")
@@ -237,7 +300,7 @@ class SettingsPage(QWidget):
         update_row.addWidget(self._check_update_btn)
 
         self._update_status = QLabel("")
-        self._update_status.setStyleSheet("font-size: 12px; color: #8B8BA0;")
+        self._update_status.setStyleSheet("font-size: 12px; color: #A8A29E;")
         update_row.addWidget(self._update_status)
         update_row.addStretch()
 
@@ -362,7 +425,7 @@ class SettingsPage(QWidget):
         card.setProperty("class", "card")
         card.setStyleSheet("""
             QFrame {
-                background-color: #252535;
+                background-color: #2A2C31;
                 border-radius: 8px;
                 border-left: 3px solid #6C5CE7;
             }
@@ -372,7 +435,7 @@ class SettingsPage(QWidget):
         card_layout.setSpacing(6)
 
         title_lbl = QLabel(title)
-        title_lbl.setStyleSheet("font-weight: bold; font-size: 13px; color: #EAEAF0;")
+        title_lbl.setStyleSheet("font-weight: bold; font-size: 13px; color: #F5F1E8;")
         card_layout.addWidget(title_lbl)
 
         content_lbl = QLabel(content)
@@ -552,6 +615,45 @@ class SettingsPage(QWidget):
         if reply == QMessageBox.StandardButton.Yes:
             dday_manager.delete_event(event.id)
             self._refresh_dday()
+
+    # ---------- Appearance / Theme ----------
+    def _change_theme(self, theme_name: str):
+        from app.core.theme_manager import apply_theme, THEMES
+        from pathlib import Path
+        
+        # Apply the theme which updates files and reloads QSS
+        app_dir = Path(__file__).parent.parent
+        apply_theme(theme_name, app_dir)
+        
+        # Update styling of all buttons dynamically so the selection updates visually in real-time
+        for name, btn in getattr(self, "_theme_buttons", {}).items():
+            t_colors = THEMES[name]
+            accent = t_colors["accent"]
+            is_active = (name == theme_name)
+            border_color = accent if is_active else "#3F4147"
+            
+            btn.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: #2A2C31;
+                    border: 2px solid {border_color};
+                    border-radius: 10px;
+                    color: {accent};
+                    font-weight: 600;
+                    text-align: left;
+                    padding-left: 14px;
+                    font-size: 13px;
+                }}
+                QPushButton:hover {{
+                    border-color: {accent};
+                    background-color: #313339;
+                }}
+            """)
+            
+        QMessageBox.information(
+            self, 
+            "Theme Updated", 
+            f"The '{theme_name}' theme has been applied globally.\n\nRestart the application to see the changes take full effect across all elements."
+        )
 
     # ---------- Data Management ----------
 

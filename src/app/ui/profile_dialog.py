@@ -349,11 +349,11 @@ class ProfileDialog(QDialog):
         # Grey out "Not set" values
         for lbl in (self._class_view, self._exam_view, self._date_view):
             if lbl.text().startswith("Not set"):
-                lbl.setStyleSheet("color: #8B8BA0; font-style: italic;")
+                lbl.setStyleSheet("color: #A8A29E; font-style: italic;")
             else:
                 lbl.setStyleSheet("")
         if self._name_view.text().endswith("(default)"):
-            self._name_view.setStyleSheet("color: #8B8BA0; font-style: italic;")
+            self._name_view.setStyleSheet("color: #A8A29E; font-style: italic;")
         else:
             self._name_view.setStyleSheet("")
 

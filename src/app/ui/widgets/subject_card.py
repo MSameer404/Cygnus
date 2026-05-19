@@ -43,13 +43,13 @@ class SubjectCard(QFrame):
         # Subject name
         name_label = QLabel(self._name)
         name_label.setProperty("class", "subject-card-name")
-        name_label.setStyleSheet("font-weight: 600; font-size: 14px; color: #FFFFFF; letter-spacing: 0.3px;")
+        name_label.setStyleSheet("font-weight: 600; font-size: 14px; color: #F5F1E8; letter-spacing: 0.3px;")
         content_layout.addWidget(name_label)
 
         # Today's study time
         time_label = QLabel(self._today_time_text)
         time_label.setProperty("class", "subject-card-time")
-        time_label.setStyleSheet("font-size: 11px; color: #8B8BA0; font-weight: 500;")
+        time_label.setStyleSheet("font-size: 11px; color: #A8A29E; font-weight: 500;")
         content_layout.addWidget(time_label)
 
         content_layout.addStretch()

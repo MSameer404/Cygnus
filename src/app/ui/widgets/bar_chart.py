@@ -30,7 +30,7 @@ class BarChart(QWidget):
     def paintEvent(self, event):
         if not self._values:
             painter = QPainter(self)
-            painter.setPen(QPen(QColor("#8B8BA0")))
+            painter.setPen(QPen(QColor("#A8A29E")))
             painter.setFont(QFont("Segoe UI", 12))
             painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, "No data")
             painter.end()
@@ -57,7 +57,7 @@ class BarChart(QWidget):
         gap = (bar_total_w - bar_w) / 2
 
         # Y-axis gridlines
-        painter.setPen(QPen(QColor("#252535"), 1))
+        painter.setPen(QPen(QColor("#2A2C31"), 1))
         painter.setFont(QFont("Segoe UI", 9))
         num_gridlines = 5
         for i in range(num_gridlines + 1):
@@ -67,13 +67,13 @@ class BarChart(QWidget):
             # Y-axis label
             val = int((i / num_gridlines) * max_val)
             label = TimerEngine.format_seconds_short(val)
-            painter.setPen(QPen(QColor("#8B8BA0")))
+            painter.setPen(QPen(QColor("#A8A29E")))
             painter.drawText(
                 QRectF(0, y - 8, padding_left - 8, 16),
                 Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
                 label,
             )
-            painter.setPen(QPen(QColor("#252535"), 1))
+            painter.setPen(QPen(QColor("#2A2C31"), 1))
 
         # Bars
         accent_color = QColor(self._accent)
@@ -102,7 +102,7 @@ class BarChart(QWidget):
 
             # X-axis label
             if i < len(self._labels):
-                painter.setPen(QPen(QColor("#8B8BA0")))
+                painter.setPen(QPen(QColor("#A8A29E")))
                 painter.setFont(QFont("Segoe UI", 9))
                 label_rect = QRectF(
                     x - gap,

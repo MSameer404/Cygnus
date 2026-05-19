@@ -38,9 +38,9 @@ from app.core import syllabus_manager as slm
 PRIORITIES = ["High", "Medium", "Low"]
 
 PRIORITY_COLORS = {
-    "High": "#F43F5E",
-    "Medium": "#F59E0B",
-    "Low": "#8B8BA0",
+    "High": "#FFB347",
+    "Medium": "#FFB347",
+    "Low": "#A8A29E",
 }
 
 
@@ -62,17 +62,17 @@ class PriorityButton(QPushButton):
     _CYCLE = ["High", "Medium", "Low"]
 
     _BG = {
-        "High":   "rgba(244, 63,  94,  0.18)",
+        "High":   "rgba(255, 179, 71,  0.18)",
         "Medium": "rgba(245, 158, 11,  0.18)",
         "Low":    "rgba(139, 139, 160, 0.18)",
     }
     _FG = {
-        "High":   "#FB7185",
+        "High":   "#FFC66D",
         "Medium": "#FCD34D",
         "Low":    "#A0A0B8",
     }
     _BORDER = {
-        "High":   "rgba(244, 63,  94,  0.55)",
+        "High":   "rgba(255, 179, 71,  0.55)",
         "Medium": "rgba(245, 158, 11,  0.55)",
         "Low":    "rgba(139, 139, 160, 0.40)",
     }
@@ -108,7 +108,7 @@ class PriorityButton(QPushButton):
             }}
             QPushButton:hover {{
                 background-color: {self._BORDER[p]};
-                color: #FFFFFF;
+                color: #F5F1E8;
             }}
             QPushButton::menu-indicator {{
                 image: none;
@@ -266,7 +266,7 @@ class _SettingsDialog(QDialog):
 
     def _apply_swatch(self, color: str):
         self._color_preview.setStyleSheet(
-            f"background-color: {color}; border-radius: 6px; border: 2px solid #3D3D60;"
+            f"background-color: {color}; border-radius: 6px; border: 2px solid #3F4147;"
         )
 
     def _pick_color(self):
@@ -452,7 +452,7 @@ class SubjectSyllabusPage(QWidget):
             # Col 1: S.No (read-only centered label)
             sno_lbl = QLabel(str(row + 1))
             sno_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            sno_lbl.setStyleSheet("color: #8B8BA0; font-size: 12px; background: transparent;")
+            sno_lbl.setStyleSheet("color: #A8A29E; font-size: 12px; background: transparent;")
             self._table.setCellWidget(row, self.COL_SNO, sno_lbl)
 
             # Col 2: chapter name — read-only normally, editable in edit mode

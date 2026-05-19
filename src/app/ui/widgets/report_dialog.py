@@ -106,12 +106,12 @@ class ReportDialog(QDialog):
 
         # Title
         title = QLabel("� Send Feedback")
-        title.setStyleSheet("font-size: 24px; font-weight: bold; color: #EAEAF0;")
+        title.setStyleSheet("font-size: 24px; font-weight: bold; color: #F5F1E8;")
         layout.addWidget(title)
 
         # Subtitle
         subtitle = QLabel("Found a bug or have an idea? Let us know and we'll improve Cygnus in future updates.")
-        subtitle.setStyleSheet("font-size: 13px; color: #8B8BA0;")
+        subtitle.setStyleSheet("font-size: 13px; color: #A8A29E;")
         subtitle.setWordWrap(True)
         layout.addWidget(subtitle)
 
@@ -143,7 +143,7 @@ class ReportDialog(QDialog):
 
         # Title input
         title_label = QLabel("Title")
-        title_label.setStyleSheet("font-size: 13px; color: #EAEAF0; font-weight: 500;")
+        title_label.setStyleSheet("font-size: 13px; color: #F5F1E8; font-weight: 500;")
         layout.addWidget(title_label)
 
         self._title_edit = QLineEdit()
@@ -151,7 +151,7 @@ class ReportDialog(QDialog):
         self._title_edit.setStyleSheet("""
             QLineEdit {
                 background-color: #2D2D3A;
-                color: #EAEAF0;
+                color: #F5F1E8;
                 border: 1px solid #3D3D4A;
                 border-radius: 8px;
                 padding: 10px 12px;
@@ -167,7 +167,7 @@ class ReportDialog(QDialog):
 
         # Description
         desc_label = QLabel("What's on your mind?")
-        desc_label.setStyleSheet("font-size: 13px; color: #EAEAF0; font-weight: 500;")
+        desc_label.setStyleSheet("font-size: 13px; color: #F5F1E8; font-weight: 500;")
         layout.addWidget(desc_label)
 
         self._desc_edit = QTextEdit()
@@ -175,7 +175,7 @@ class ReportDialog(QDialog):
         self._desc_edit.setStyleSheet("""
             QTextEdit {
                 background-color: #2D2D3A;
-                color: #EAEAF0;
+                color: #F5F1E8;
                 border: 1px solid #3D3D4A;
                 border-radius: 8px;
                 padding: 12px;
@@ -200,7 +200,7 @@ class ReportDialog(QDialog):
         cancel_btn.setStyleSheet("""
             QPushButton {
                 background-color: #3D3D4A;
-                color: #EAEAF0;
+                color: #F5F1E8;
                 border: none;
                 border-radius: 6px;
                 padding: 8px 16px;
@@ -218,7 +218,7 @@ class ReportDialog(QDialog):
         self._submit_btn.setStyleSheet("""
             QPushButton {
                 background-color: #6C5CE7;
-                color: #FFFFFF;
+                color: #F5F1E8;
                 border: none;
                 border-radius: 6px;
                 padding: 10px 20px;
@@ -230,7 +230,7 @@ class ReportDialog(QDialog):
             }
             QPushButton:disabled {
                 background-color: #3D3D4A;
-                color: #8B8BA0;
+                color: #A8A29E;
             }
         """)
         self._submit_btn.clicked.connect(self._submit_report)
@@ -258,7 +258,7 @@ class ReportDialog(QDialog):
             return f"""
                 QPushButton {{
                     background-color: {color};
-                    color: #FFFFFF;
+                    color: #F5F1E8;
                     border: 2px solid {color};
                     border-radius: 8px;
                     padding: 12px 24px;

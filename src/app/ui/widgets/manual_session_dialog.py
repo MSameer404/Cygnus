@@ -36,11 +36,11 @@ class ManualSessionDialog(QDialog):
 
         # Header
         header = QLabel("📝 Record a Past Session")
-        header.setStyleSheet("font-size: 16px; font-weight: bold; color: #EAEAF0;")
+        header.setStyleSheet("font-size: 16px; font-weight: bold; color: #F5F1E8;")
         layout.addWidget(header)
 
         hint = QLabel("Didn't have your device? Log the session here.")
-        hint.setStyleSheet("font-size: 12px; color: #8B8BA0;")
+        hint.setStyleSheet("font-size: 12px; color: #A8A29E;")
         hint.setWordWrap(True)
         layout.addWidget(hint)
 

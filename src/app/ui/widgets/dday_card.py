@@ -40,13 +40,13 @@ class DDayCard(QFrame):
         days = (self._event.target_date - date.today()).days
         if days > 0:
             dday_text = f"D-{days}"
-            color = "#FDCB6E" if days <= 7 else "#EAEAF0"
+            color = "#FDCB6E" if days <= 7 else "#F5F1E8"
         elif days == 0:
             dday_text = "D-DAY"
             color = "#FF6B6B"
         else:
             dday_text = f"D+{abs(days)}"
-            color = "#8B8BA0"
+            color = "#A8A29E"
 
         dday_label = QLabel(dday_text)
         dday_label.setStyleSheet(
@@ -60,7 +60,7 @@ class DDayCard(QFrame):
             self._event.target_date.strftime("%Y.%m.%d")
         )
         date_label.setStyleSheet(
-            "font-size: 11px; color: #8B8BA0; "
+            "font-size: 11px; color: #A8A29E; "
             "background: transparent;"
         )
         layout.addWidget(date_label)

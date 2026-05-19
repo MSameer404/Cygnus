@@ -169,8 +169,8 @@ def generate_html_report(target_date: date, output_path: Path | None = None) -> 
         
         body {{
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #1E1E2E 0%, #252535 100%);
-            color: #EAEAF0;
+            background: linear-gradient(135deg, #1E1E2E 0%, #2A2C31 100%);
+            color: #F5F1E8;
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -227,13 +227,13 @@ def generate_html_report(target_date: date, output_path: Path | None = None) -> 
         .profile-name {{
             font-size: 20px;
             font-weight: 700;
-            color: #EAEAF0;
+            color: #F5F1E8;
             margin-bottom: 4px;
         }}
         
         .profile-details {{
             font-size: 13px;
-            color: #8B8BA0;
+            color: #A8A29E;
         }}
         
         /* Center Card */
@@ -258,7 +258,7 @@ def generate_html_report(target_date: date, output_path: Path | None = None) -> 
         .total-time {{
             font-size: 20px;
             font-weight: 600;
-            color: #EAEAF0;
+            color: #F5F1E8;
             text-shadow: 0 2px 10px rgba(108, 92, 231, 0.5);
             margin-bottom: 12px;
             letter-spacing: 0;
@@ -289,7 +289,7 @@ def generate_html_report(target_date: date, output_path: Path | None = None) -> 
         .small-unit {{
             font-size: 12px;
             font-weight: 500;
-            color: #8B8BA0;
+            color: #A8A29E;
             margin-right: 6px;
         }}
         
@@ -325,7 +325,7 @@ def generate_html_report(target_date: date, output_path: Path | None = None) -> 
         
         .streak-label {{
             font-size: 14px;
-            color: #8B8BA0;
+            color: #A8A29E;
             margin-top: 4px;
         }}
         
@@ -378,13 +378,13 @@ def generate_html_report(target_date: date, output_path: Path | None = None) -> 
             transform: translate(-50%, -50%);
             width: 80px;
             height: 80px;
-            background: #252535;
+            background: #2A2C31;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 12px;
-            color: #8B8BA0;
+            color: #A8A29E;
             text-align: center;
         }}
         
@@ -410,13 +410,13 @@ def generate_html_report(target_date: date, output_path: Path | None = None) -> 
         .legend-name {{
             flex: 1;
             font-size: 14px;
-            color: #EAEAF0;
+            color: #F5F1E8;
         }}
         
         .legend-value {{
             font-size: 24px;
             font-weight: 800;
-            color: #EAEAF0;
+            color: #F5F1E8;
         }}
         
         /* Stats */
@@ -443,7 +443,7 @@ def generate_html_report(target_date: date, output_path: Path | None = None) -> 
         
         .stat-label {{
             font-size: 11px;
-            color: #8B8BA0;
+            color: #A8A29E;
             margin-top: 4px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -692,8 +692,8 @@ def generate_week_html_report(week_start: date, output_path: Path | None = None)
         
         body {{
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #1E1E2E 0%, #252535 100%);
-            color: #EAEAF0;
+            background: linear-gradient(135deg, #1E1E2E 0%, #2A2C31 100%);
+            color: #F5F1E8;
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -750,13 +750,13 @@ def generate_week_html_report(week_start: date, output_path: Path | None = None)
         .profile-name {{
             font-size: 20px;
             font-weight: 700;
-            color: #EAEAF0;
+            color: #F5F1E8;
             margin-bottom: 4px;
         }}
         
         .profile-details {{
             font-size: 13px;
-            color: #8B8BA0;
+            color: #A8A29E;
         }}
         
         /* Week Card */
@@ -781,7 +781,7 @@ def generate_week_html_report(week_start: date, output_path: Path | None = None)
         .total-time {{
             font-size: 20px;
             font-weight: 600;
-            color: #EAEAF0;
+            color: #F5F1E8;
             text-shadow: 0 2px 10px rgba(108, 92, 231, 0.5);
             line-height: 1.4;
         }}
@@ -810,7 +810,7 @@ def generate_week_html_report(week_start: date, output_path: Path | None = None)
         .small-unit {{
             font-size: 12px;
             font-weight: 500;
-            color: #8B8BA0;
+            color: #A8A29E;
             margin-right: 6px;
         }}
         
@@ -862,13 +862,13 @@ def generate_week_html_report(week_start: date, output_path: Path | None = None)
         .legend-name {{
             flex: 1;
             font-size: 15px;
-            color: #EAEAF0;
+            color: #F5F1E8;
         }}
         
         .legend-value {{
             font-size: 24px;
             font-weight: 800;
-            color: #EAEAF0;
+            color: #F5F1E8;
         }}
         
         /* Week Bar Chart */
@@ -917,7 +917,7 @@ def generate_week_html_report(week_start: date, output_path: Path | None = None)
         .bar-label {{
             font-size: 12px;
             font-weight: 600;
-            color: #8B8BA0;
+            color: #A8A29E;
             text-transform: uppercase;
         }}
         
@@ -947,7 +947,7 @@ def generate_week_html_report(week_start: date, output_path: Path | None = None)
         
         .stat-label {{
             font-size: 11px;
-            color: #8B8BA0;
+            color: #A8A29E;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }}

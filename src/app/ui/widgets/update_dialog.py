@@ -46,17 +46,17 @@ class UpdateDialog(QDialog):
 
         # Header
         header = QLabel(f"<h2>Update Available: v{self.version}</h2>")
-        header.setStyleSheet("color: #EAEAF0;")
+        header.setStyleSheet("color: #F5F1E8;")
         layout.addWidget(header)
 
         # Current version info
         current = QLabel(f"Current version: <b>v{CURRENT_VERSION}</b>")
-        current.setStyleSheet("color: #8B8BA0; font-size: 13px;")
+        current.setStyleSheet("color: #A8A29E; font-size: 13px;")
         layout.addWidget(current)
 
         # Changelog section
         changelog_label = QLabel("Release Notes:")
-        changelog_label.setStyleSheet("font-weight: bold; color: #EAEAF0;")
+        changelog_label.setStyleSheet("font-weight: bold; color: #F5F1E8;")
         layout.addWidget(changelog_label)
 
         # Scrollable changelog
@@ -72,7 +72,7 @@ class UpdateDialog(QDialog):
             """
             QTextEdit {
                 background-color: #1A1A24;
-                color: #EAEAF0;
+                color: #F5F1E8;
                 border: none;
                 padding: 12px;
                 font-size: 13px;
@@ -114,7 +114,7 @@ class UpdateDialog(QDialog):
             "4. Run the new .exe file (your data will be preserved)<br>"
             "5. Delete the old .exe file"
         )
-        instructions.setStyleSheet("color: #8B8BA0; font-size: 12px; margin-top: 8px;")
+        instructions.setStyleSheet("color: #A8A29E; font-size: 12px; margin-top: 8px;")
         instructions.setWordWrap(True)
         layout.addWidget(instructions)
 
