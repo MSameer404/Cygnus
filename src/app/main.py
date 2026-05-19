@@ -96,13 +96,6 @@ def main():
     if bm.is_bg_enabled():
         window.reload_background()
 
-    # Check for updates
-    from app.core.updater import AutoUpdater
-    updater = AutoUpdater()
-    release_data = updater.check_for_updates()
-    if release_data:
-        updater.download_and_install(release_data, window)
-
     sys.exit(app.exec())
 
 

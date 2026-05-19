@@ -27,7 +27,7 @@ from PySide6.QtWidgets import (
 )
 
 from app.core import dday_manager, session_manager, subject_manager
-from app.core.update_manager import CURRENT_VERSION, get_update_manager
+from app.core.utils import CURRENT_VERSION
 from app.data.database import DB_PATH
 from app.data.models import DDayEvent, Subject
 from app.data.settings_store import load_setting, save_setting
@@ -299,21 +299,7 @@ class SettingsPage(QWidget):
         about.setProperty("class", "muted")
         about_layout.addWidget(about)
 
-        update_row = QHBoxLayout()
-        update_row.setSpacing(8)
-
-        self._check_update_btn = QPushButton("🔍 Check for Update")
-        self._check_update_btn.setProperty("class", "secondary")
-        self._check_update_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._check_update_btn.clicked.connect(self._check_for_update)
-        update_row.addWidget(self._check_update_btn)
-
-        self._update_status = QLabel("")
-        self._update_status.setStyleSheet("font-size: 12px; color: #CBAACD;")
-        update_row.addWidget(self._update_status)
-        update_row.addStretch()
-
-        about_layout.addLayout(update_row)
+        # Update check feature completely removed
 
         # Contact & Feedback buttons
         feedback_row = QHBoxLayout()
@@ -430,6 +416,21 @@ class SettingsPage(QWidget):
 
     def _add_notice_card(self, layout, title: str, content: str):
         """Add a notice card to the notice board."""
+        # Clean up or ignore update-related notices
+        if "update" in title.lower() or "update" in content.lower():
+            if "v2.1.0" not in title:  # Keep the main release notice but re-word it
+                return
+
+        # Re-word release notices to remove manual update instructions
+        if "v2.1.0" in title:
+            title = "🎉 v2.1.0 Released"
+            content = "Cygnus v2.1.0 is now available! This update includes bug fixes and performance improvements."
+        elif "Report Image" in title:
+            title = "🖼️ Report Image UI Fixed"
+
+        # Clean up any residual unicode replacement chars
+        title = title.replace("\ufffd", "").replace("", "").strip()
+
         card = QFrame()
         card.setProperty("class", "card")
         card.setStyleSheet("""
@@ -884,23 +885,7 @@ class SettingsPage(QWidget):
 
                 QMessageBox.information(self, "Reset Complete", "All data has been reset. The app is now fresh.")
 
-    def _check_for_update(self):
-        """Check for application updates from GitHub."""
-        self._check_update_btn.setEnabled(False)
-        self._check_update_btn.setText("Checking...")
-        self._update_status.setText("Checking GitHub for updates...")
-
-        update_manager = get_update_manager()
-        worker = update_manager.check_for_update(self)
-        
-        # Reset button state when check completes (success or error)
-        worker.finished.connect(self._reset_update_button)
-
-    def _reset_update_button(self):
-        """Reset the check update button to default state."""
-        self._check_update_btn.setEnabled(True)
-        self._check_update_btn.setText("🔍 Check for Update")
-        self._update_status.setText("")
+    # Update checking methods completely removed
 
     def _open_contact(self):
         """Open the contact us dialog."""

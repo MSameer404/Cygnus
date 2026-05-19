@@ -6,7 +6,7 @@ from PySide6.QtCore import Signal, Qt, QSize
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QFrame, QVBoxLayout, QPushButton, QWidget, QSpacerItem, QSizePolicy, QLabel, QHBoxLayout
 
-from app.core.update_manager import CURRENT_VERSION
+from app.core.utils import CURRENT_VERSION
 
 
 class Sidebar(QWidget):
