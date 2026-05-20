@@ -240,6 +240,54 @@ class SettingsPage(QWidget):
 
         layout.addWidget(self._theme_section)
 
+        # ========== Timer Settings (Collapsible) ==========
+        self._timer_pref_section = CollapsibleSection("Timer Settings")
+        self._timer_pref_container = QVBoxLayout()
+        self._timer_pref_container.setSpacing(12)
+        self._timer_pref_section.add_layout(self._timer_pref_container)
+
+        lbl_timer = QLabel("Select Timer Mode:")
+        lbl_timer.setStyleSheet("color: #CBAACD; font-size: 13px; margin-bottom: 4px;")
+        self._timer_pref_container.addWidget(lbl_timer)
+
+        self._timer_mode_combo = QComboBox()
+        self._timer_mode_combo.addItem("Start from Zero (Standard)", "start_from_zero")
+        self._timer_mode_combo.addItem("Daily Total Time (Accumulative)", "daily_total")
+        self._timer_mode_combo.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._timer_mode_combo.setFixedHeight(40)
+        self._timer_mode_combo.setStyleSheet("""
+            QComboBox {
+                background: rgba(40, 15, 45, 0.55);
+                border: 1px solid rgba(90, 58, 94, 0.6);
+                border-radius: 8px;
+                padding: 8px 12px;
+                color: #FFD6E0;
+                font-weight: 600;
+            }
+            QComboBox::drop-down {
+                border: none;
+            }
+        """)
+
+        # Load saved setting and select in combobox
+        current_timer_style = load_setting("timer_style", "start_from_zero")
+        idx = self._timer_mode_combo.findData(current_timer_style)
+        if idx >= 0:
+            self._timer_mode_combo.setCurrentIndex(idx)
+
+        self._timer_mode_combo.currentIndexChanged.connect(self._on_timer_style_changed)
+        self._timer_pref_container.addWidget(self._timer_mode_combo)
+
+        lbl_timer_desc = QLabel(
+            "• Start from Zero: Timer starts at 00:00:00 for each new session.\n"
+            "• Daily Total Time: Timer starts at the total time you studied this subject today and accumulates."
+        )
+        lbl_timer_desc.setWordWrap(True)
+        lbl_timer_desc.setStyleSheet("color: rgba(203, 170, 205, 0.7); font-size: 11px; line-height: 1.4;")
+        self._timer_pref_container.addWidget(lbl_timer_desc)
+
+        layout.addWidget(self._timer_pref_section)
+
         # ========== Background Image (Collapsible) ==========
         self._bg_section = CollapsibleSection("Background Image")
         self._bg_container = QVBoxLayout()
@@ -785,6 +833,10 @@ class SettingsPage(QWidget):
         window = self.window()
         if hasattr(window, "reload_background"):
             window.reload_background()
+
+    def _on_timer_style_changed(self, index):
+        mode = self._timer_mode_combo.itemData(index)
+        save_setting("timer_style", mode)
 
     # ---------- Appearance / Theme ----------
     def _change_theme(self, theme_name: str):

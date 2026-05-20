@@ -69,7 +69,7 @@ class TimerPage(QWidget):
         # ---------- Subject Picker ----------
         self.subject_picker = SubjectPicker()
         left_layout.addWidget(self.subject_picker)
-        left_layout.addSpacing(40)
+        left_layout.addSpacing(24)
 
         # ---------- Timer Display ----------
         timer_container = QFrame()
@@ -83,7 +83,7 @@ class TimerPage(QWidget):
         """)
         timer_layout = QVBoxLayout(timer_container)
         timer_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        timer_layout.setContentsMargins(40, 50, 40, 50)
+        timer_layout.setContentsMargins(40, 32, 40, 32)
         timer_layout.setSpacing(16)
 
         self._timer_label = QLabel("00:00:00")
@@ -104,7 +104,7 @@ class TimerPage(QWidget):
         timer_layout.addWidget(self._status_label)
 
         left_layout.addWidget(timer_container)
-        left_layout.addSpacing(40)
+        left_layout.addSpacing(24)
 
         # ---------- Controls (Single Button) ----------
         controls = QHBoxLayout()
@@ -238,8 +238,17 @@ class TimerPage(QWidget):
         self.timer_engine.tick.connect(self._on_tick)
         self.timer_engine.state_changed.connect(self._on_state_changed)
 
+    def _get_initial_display_seconds(self) -> int:
+        from app.data.settings_store import load_setting
+        if load_setting("timer_style", "start_from_zero") == "daily_total" and self._current_subject:
+            return session_manager.get_total_seconds_for_subject_on_date(self._current_subject.id, date.today())
+        return 0
+
     def _on_subject_selected(self, subject: Subject):
         self._current_subject = subject
+        if self.timer_engine.state.value == 'idle':
+            initial = self._get_initial_display_seconds()
+            self._timer_label.setText(TimerEngine.format_seconds(initial))
 
     def _on_session_button_clicked(self):
         """Handle the single session button click with confirmations."""
@@ -301,7 +310,8 @@ class TimerPage(QWidget):
         self.subject_picker.refresh()
 
     def _on_tick(self, elapsed: int):
-        self._timer_label.setText(TimerEngine.format_seconds(elapsed))
+        initial = self._get_initial_display_seconds()
+        self._timer_label.setText(TimerEngine.format_seconds(initial + elapsed))
 
     def _on_state_changed(self, state: str):
         if state == "running":
@@ -349,7 +359,8 @@ class TimerPage(QWidget):
                 }
             """)
             self.subject_picker.set_interactive(True)
-            self._timer_label.setText("00:00:00")
+            initial = self._get_initial_display_seconds()
+            self._timer_label.setText(TimerEngine.format_seconds(initial))
             self._timer_label.setStyleSheet("""
                 font-size: 96px;
                 font-family: 'Consolas', monospace;
@@ -496,5 +507,8 @@ class TimerPage(QWidget):
         super().showEvent(event)
         self._refresh_sessions()
         self.subject_picker.refresh()
+        if self.timer_engine.state.value == 'idle':
+            initial = self._get_initial_display_seconds()
+            self._timer_label.setText(TimerEngine.format_seconds(initial))
 
 

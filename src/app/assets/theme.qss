@@ -96,20 +96,7 @@ QPushButton.stop-btn {
 }
 QPushButton.stop-btn:hover { background: rgba(240, 65, 95, 0.88); }
 
-QFrame.subject-card {
-    background: rgba(30, 10, 35, 0.6); border: 2px solid transparent; border-radius: 10px;
-}
-QFrame.subject-card:hover { background: rgba(40, 15, 45, 0.7); border-color: rgba(90, 58, 94, 0.5); }
-QFrame.subject-card[selected="true"] {
-    border-color: #FF758F; background: rgba(255, 117, 143, 0.12);
-}
-QPushButton.subject-card-add {
-    background-color: transparent; border: 2px dashed rgba(90, 58, 94, 0.5);
-    border-radius: 10px; font-size: 20px; color: rgba(203, 170, 205, 0.6);
-}
-QPushButton.subject-card-add:hover {
-    border-color: #FF758F; color: #FF758F; background: rgba(255, 117, 143, 0.08);
-}
+/* QFrame.subject-card styled dynamically in subject_card.py */
 
 QLineEdit, QTextEdit {
     background: rgba(20, 8, 24, 0.55); border: 1px solid rgba(90, 58, 94, 0.5);

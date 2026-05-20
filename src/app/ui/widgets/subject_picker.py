@@ -43,7 +43,7 @@ class SubjectPicker(QWidget):
         scroll.setWidgetResizable(True)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        scroll.setFixedHeight(75)
+        scroll.setFixedHeight(92)
 
         self._container = QWidget()
         self._layout = QHBoxLayout(self._container)
