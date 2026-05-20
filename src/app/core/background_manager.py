@@ -61,30 +61,50 @@ def save_opacity(opacity: float):
 
 
 def _stack_blur(image: QImage, radius: int) -> QImage:
-    """Apply a box blur approximation. Radius 0 = no blur."""
+    """Apply a mathematically perfect Pillow-based Gaussian Blur. Radius 0 = no blur."""
     if radius <= 0:
         return image
 
-    # Convert to ARGB32 for consistent pixel access
-    img = image.convertToFormat(QImage.Format.Format_ARGB32)
-    w, h = img.width(), img.height()
-
-    # Use QPainter-level blur via repeated downscale/upscale trick
-    scale = max(1, min(radius, 40))
-    small_w = max(1, w // (scale + 1))
-    small_h = max(1, h // (scale + 1))
-
-    small = img.scaled(
-        small_w, small_h,
-        Qt.AspectRatioMode.IgnoreAspectRatio,
-        Qt.TransformationMode.SmoothTransformation
-    )
-    blurred = small.scaled(
-        w, h,
-        Qt.AspectRatioMode.IgnoreAspectRatio,
-        Qt.TransformationMode.SmoothTransformation
-    )
-    return blurred
+    try:
+        from PIL import Image as PILImage, ImageFilter
+        
+        # Ensure format is ARGB32 for consistent byte layout
+        img = image.convertToFormat(QImage.Format.Format_ARGB32)
+        width, height = img.width(), img.height()
+        
+        # Retrieve direct memory bytes from the QImage
+        ptr = img.bits()
+        bytes_data = bytes(ptr)
+        
+        # Load into PIL (BGRA format raw pixel stream)
+        pil_img = PILImage.frombytes("RGBA", (width, height), bytes_data, "raw", "BGRA")
+        
+        # Apply true distortion-free Gaussian Blur
+        blurred_pil = pil_img.filter(ImageFilter.GaussianBlur(radius))
+        
+        # Convert back to raw bytes
+        blurred_bytes = blurred_pil.tobytes("raw", "BGRA")
+        
+        # Wrap into QImage and perform a deep copy to ensure memory safety
+        return QImage(blurred_bytes, width, height, QImage.Format.Format_ARGB32).copy()
+    except Exception as e:
+        # Graceful fallback: downscale/upscale box approximation if PIL is unavailable
+        img = image.convertToFormat(QImage.Format.Format_ARGB32)
+        w, h = img.width(), img.height()
+        scale = max(1, min(radius, 40))
+        small_w = max(1, w // (scale + 1))
+        small_h = max(1, h // (scale + 1))
+        
+        small = img.scaled(
+            small_w, small_h,
+            Qt.AspectRatioMode.IgnoreAspectRatio,
+            Qt.TransformationMode.SmoothTransformation
+        )
+        return small.scaled(
+            w, h,
+            Qt.AspectRatioMode.IgnoreAspectRatio,
+            Qt.TransformationMode.SmoothTransformation
+        )
 
 
 def build_background_pixmap(width: int, height: int) -> QPixmap | None:

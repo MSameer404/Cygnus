@@ -44,7 +44,7 @@ class SessionCard(QFrame):
         end = self._session.end_time.strftime("%H:%M")
         time_label = QLabel(f"{start} – {end}")
         time_label.setProperty("class", "muted")
-        time_label.setStyleSheet("font-size: 12px; color: #CBAACD;")
+        time_label.setStyleSheet("font-size: 12px; color: #6EE7B7;")
         row.addWidget(time_label)
 
         row.addStretch()

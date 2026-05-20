@@ -69,7 +69,7 @@ class SnapshotWidget(QWidget):
 
         # LEFT: Profile Card
         profile_card = QFrame()
-        profile_card.setStyleSheet("background-color: #3E2740; border-radius: 12px;")
+        profile_card.setStyleSheet("background-color: #182820; border-radius: 12px;")
         profile_layout = QHBoxLayout(profile_card)
         profile_layout.setContentsMargins(20, 15, 20, 15)
         profile_layout.setSpacing(15)
@@ -104,7 +104,7 @@ class SnapshotWidget(QWidget):
         profile_info.setSpacing(4)
         
         name_lbl = QLabel(name)
-        name_lbl.setStyleSheet("font-size: 20px; font-weight: bold; color: #FFD6E0;")
+        name_lbl.setStyleSheet("font-size: 20px; font-weight: bold; color: #ECFDF5;")
         profile_info.addWidget(name_lbl)
         
         details = []
@@ -115,7 +115,7 @@ class SnapshotWidget(QWidget):
         
         if details:
             details_lbl = QLabel(" • ".join(details))
-            details_lbl.setStyleSheet("font-size: 14px; color: #CBAACD;")
+            details_lbl.setStyleSheet("font-size: 14px; color: #6EE7B7;")
             profile_info.addWidget(details_lbl)
         
         profile_layout.addLayout(profile_info)
@@ -124,7 +124,7 @@ class SnapshotWidget(QWidget):
 
         # RIGHT: Date & Total Time Card
         date_time_card = QFrame()
-        date_time_card.setStyleSheet("background-color: #3E2740; border-radius: 12px;")
+        date_time_card.setStyleSheet("background-color: #182820; border-radius: 12px;")
         date_time_layout = QVBoxLayout(date_time_card)
         date_time_layout.setContentsMargins(20, 15, 20, 15)
         date_time_layout.setSpacing(8)
@@ -133,7 +133,7 @@ class SnapshotWidget(QWidget):
         # Today's Date (Header 3 style)
         date_str = self.target_date.strftime("%B %d, %Y")
         date_lbl = QLabel(date_str)
-        date_lbl.setStyleSheet("font-size: 18px; color: #CBAACD;")
+        date_lbl.setStyleSheet("font-size: 18px; color: #6EE7B7;")
         date_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         date_time_layout.addWidget(date_lbl)
 
@@ -153,13 +153,13 @@ class SnapshotWidget(QWidget):
 
         # LEFT: Subject Breakdown
         subjects_card = QFrame()
-        subjects_card.setStyleSheet("background-color: #3E2740; border-radius: 12px;")
+        subjects_card.setStyleSheet("background-color: #182820; border-radius: 12px;")
         subjects_layout = QVBoxLayout(subjects_card)
         subjects_layout.setContentsMargins(20, 20, 20, 20)
         subjects_layout.setSpacing(12)
 
         sub_title = QLabel("Subject Breakdown")
-        sub_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #FFD6E0; margin-bottom: 5px;")
+        sub_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #ECFDF5; margin-bottom: 5px;")
         subjects_layout.addWidget(sub_title)
 
         breakdown = stats_engine.get_subject_breakdown(self.target_date, self.target_date)
@@ -188,7 +188,7 @@ class SnapshotWidget(QWidget):
                     row.addWidget(color_dot)
                     
                     name_lbl = QLabel(str(name))
-                    name_lbl.setStyleSheet("font-size: 15px; color: #FFD6E0;")
+                    name_lbl.setStyleSheet("font-size: 15px; color: #ECFDF5;")
                     row.addWidget(name_lbl, stretch=1)
                     
                     # Subject time - slightly bigger
@@ -202,13 +202,13 @@ class SnapshotWidget(QWidget):
 
         # RIGHT: Today's Tasks
         tasks_card = QFrame()
-        tasks_card.setStyleSheet("background-color: #3E2740; border-radius: 12px;")
+        tasks_card.setStyleSheet("background-color: #182820; border-radius: 12px;")
         tasks_layout = QVBoxLayout(tasks_card)
         tasks_layout.setContentsMargins(20, 20, 20, 20)
         tasks_layout.setSpacing(12)
 
         task_title = QLabel("Today's Tasks")
-        task_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #FFD6E0; margin-bottom: 5px;")
+        task_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #ECFDF5; margin-bottom: 5px;")
         tasks_layout.addWidget(task_title)
 
         # Due today, excluding dumped and items moved to the work table
@@ -235,7 +235,7 @@ class SnapshotWidget(QWidget):
                 row.addWidget(chk_lbl)
                 
                 t_lbl = QLabel(title_text)
-                t_style = "font-size: 14px; text-decoration: line-through; color: #7A819E;" if is_comp else "font-size: 14px; color: #FFD6E0;"
+                t_style = "font-size: 14px; text-decoration: line-through; color: #7A819E;" if is_comp else "font-size: 14px; color: #ECFDF5;"
                 t_lbl.setStyleSheet(t_style)
                 row.addWidget(t_lbl, stretch=1)
                 

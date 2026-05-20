@@ -24,6 +24,7 @@ from PySide6.QtWidgets import (
     QWidget,
     QComboBox,
     QSlider,
+    QCheckBox,
 )
 
 from app.core import dday_manager, session_manager, subject_manager
@@ -41,6 +42,7 @@ class CollapsibleSection(QWidget):
     def __init__(self, title: str, parent=None):
         super().__init__(parent)
         self._is_expanded = False
+        self._title = title
         self._setup_ui(title)
 
     def _setup_ui(self, title: str):
@@ -49,45 +51,66 @@ class CollapsibleSection(QWidget):
         layout.setSpacing(0)
 
         # Toggle button
-        self._toggle_btn = QPushButton(f"▶ {title}")
+        self._toggle_btn = QPushButton(f"▶   {title}")
         self._toggle_btn.setProperty("class", "collapsible-btn")
         self._toggle_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._toggle_btn.setStyleSheet(
-            """
-            QPushButton {
-                text-align: left;
-                padding: 12px 16px;
-                background-color: #2A2A3A;
-                border: 1px solid #3A3A50;
-                border-radius: 8px;
-                color: #FFD6E0;
-                font-weight: bold;
-                font-size: 14px;
-            }
-            QPushButton:hover {
-                background-color: #3A3A50;
-            }
-            """
-        )
+        self._update_btn_style()
         self._toggle_btn.clicked.connect(self._toggle)
         layout.addWidget(self._toggle_btn)
 
         # Content container
         self._content = QWidget()
         self._content.setVisible(False)
+        self._content.setStyleSheet(
+            """
+            QWidget {
+                background-color: rgba(20, 8, 25, 0.22);
+                border-left: 1px solid rgba(16, 185, 129, 0.14);
+                border-right: 1px solid rgba(16, 185, 129, 0.14);
+                border-bottom: 1px solid rgba(16, 185, 129, 0.14);
+                border-bottom-left-radius: 12px;
+                border-bottom-right-radius: 12px;
+            }
+            """
+        )
         self._content_layout = QVBoxLayout(self._content)
-        self._content_layout.setContentsMargins(12, 12, 12, 12)
-        self._content_layout.setSpacing(8)
+        self._content_layout.setContentsMargins(18, 16, 18, 18)
+        self._content_layout.setSpacing(12)
         layout.addWidget(self._content)
+
+    def _update_btn_style(self):
+        border_radius_str = "border-radius: 12px;"
+        if self._is_expanded:
+            border_radius_str = "border-radius: 12px; border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; border-bottom: 1px solid rgba(16, 185, 129, 0.04);"
+            
+        self._toggle_btn.setStyleSheet(
+            f"""
+            QPushButton {{
+                text-align: left;
+                padding: 14px 20px;
+                background-color: rgba(30, 10, 35, 0.45);
+                border: 1px solid rgba(16, 185, 129, 0.14);
+                {border_radius_str}
+                color: #ECFDF5;
+                font-weight: bold;
+                font-size: 14px;
+            }}
+            QPushButton:hover {{
+                background-color: rgba(16, 185, 129, 0.08);
+                border-color: rgba(16, 185, 129, 0.45);
+                color: #10B981;
+            }}
+            """
+        )
 
     def _toggle(self):
         self._is_expanded = not self._is_expanded
         self._content.setVisible(self._is_expanded)
-        text = self._toggle_btn.text()
+        self._update_btn_style()
         if self._is_expanded:
-            self._toggle_btn.setText(text.replace("▶", "▼"))
+            self._toggle_btn.setText(f"▼   {self._title}")
         else:
-            self._toggle_btn.setText(text.replace("▼", "▶"))
+            self._toggle_btn.setText(f"▶   {self._title}")
 
     def add_widget(self, widget):
         """Add a widget to the collapsible content area."""
@@ -106,6 +129,8 @@ class SettingsPage(QWidget):
         self._setup_ui()
 
     def _setup_ui(self):
+        from PySide6.QtWidgets import QStackedWidget
+        
         # Main vertical layout
         outer_layout = QVBoxLayout(self)
         outer_layout.setContentsMargins(0, 0, 0, 0)
@@ -125,14 +150,14 @@ class SettingsPage(QWidget):
         header_layout.addStretch()
         outer_layout.addWidget(header)
 
-        # Horizontal separator line below header (aligned with sidebar profile level)
+        # Horizontal separator line below header
         horizontal_line = QFrame()
         horizontal_line.setObjectName("headerSeparator")
         horizontal_line.setFrameShape(QFrame.Shape.HLine)
         horizontal_line.setFixedHeight(1)
         outer_layout.addWidget(horizontal_line)
 
-        # ---------- Content with Splitter ----------
+        # ---------- Content Area with Splitter ----------
         content_widget = QWidget()
         content_layout = QHBoxLayout(content_widget)
         content_layout.setContentsMargins(20, 20, 20, 20)
@@ -140,54 +165,256 @@ class SettingsPage(QWidget):
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
 
-        # ========== LEFT PANEL: Settings Content ==========
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        # ========== 1. LEFT SUB-SIDEBAR (Category Navigation List) ==========
+        self._sub_sidebar = QWidget()
+        self._sub_sidebar.setFixedWidth(220)
+        sub_sidebar_layout = QVBoxLayout(self._sub_sidebar)
+        sub_sidebar_layout.setContentsMargins(0, 0, 16, 0)
+        sub_sidebar_layout.setSpacing(8)
 
-        content = QWidget()
-        layout = QVBoxLayout(content)
-        layout.setContentsMargins(40, 30, 40, 30)
-        layout.setSpacing(16)
+        # Add category title
+        sub_sidebar_title = QLabel("CATEGORIES")
+        sub_sidebar_title.setStyleSheet("font-size: 11px; font-weight: bold; color: rgba(203, 170, 205, 0.5); letter-spacing: 1px; margin-bottom: 4px; padding-left: 8px;")
+        sub_sidebar_layout.addWidget(sub_sidebar_title)
 
-        # ========== Subject Management (Collapsible) ==========
-        self._subjects_section = CollapsibleSection("Subjects")
+        # Category buttons setup
+        self._nav_buttons = []
+        categories = [
+            ("📚   Subjects", 0),
+            ("📅   D-Day Events", 1),
+            ("⏰   Timer Settings", 2),
+            ("🎨   Visuals & Theme", 3),
+            ("📦   System & Data", 4),
+            ("📖   Usage Guide", 5),
+        ]
+        
+        for name, idx in categories:
+            btn = QPushButton(name)
+            btn.setCheckable(True)
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setFixedHeight(46)
+            btn.clicked.connect(lambda checked=False, i=idx: self._switch_sub_page(i))
+            sub_sidebar_layout.addWidget(btn)
+            self._nav_buttons.append(btn)
 
-        self._subjects_container = QVBoxLayout()
+        sub_sidebar_layout.addStretch()
+        splitter.addWidget(self._sub_sidebar)
+
+        # ========== 2. CENTER PANEL: Stacked Cards Container ==========
+        self._stacked_card = QFrame()
+        self._stacked_card.setProperty("class", "card")
+        self._stacked_layout = QVBoxLayout(self._stacked_card)
+        self._stacked_layout.setContentsMargins(24, 24, 24, 24)
+        self._stacked_layout.setSpacing(16)
+
+        self._stacked_widget = QStackedWidget()
+        self._stacked_layout.addWidget(self._stacked_widget)
+        splitter.addWidget(self._stacked_card)
+
+        # ---------- Build Sub-Pages inside StackedWidget ----------
+
+        # ------ Page 0: Subjects ------
+        self._page_subjects = QWidget()
+        subjects_layout = QVBoxLayout(self._page_subjects)
+        subjects_layout.setContentsMargins(0, 0, 0, 0)
+        subjects_layout.setSpacing(16)
+
+        subj_title_lbl = QLabel("📚   Manage Subjects")
+        subj_title_lbl.setProperty("class", "subheading")
+        subjects_layout.addWidget(subj_title_lbl)
+
+        subj_desc = QLabel("Create and customize your study subjects. Assign unique, color-coded glows to organize your stopwatch sessions.")
+        subj_desc.setWordWrap(True)
+        subj_desc.setStyleSheet("color: rgba(203, 170, 205, 0.7); font-size: 13px; line-height: 1.4;")
+        subjects_layout.addWidget(subj_desc)
+
+        subj_scroll = QScrollArea()
+        subj_scroll.setWidgetResizable(True)
+        subj_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        
+        self._subj_content = QWidget()
+        self._subjects_container = QVBoxLayout(self._subj_content)
+        self._subjects_container.setContentsMargins(0, 0, 8, 0)
         self._subjects_container.setSpacing(8)
-        self._subjects_section.add_layout(self._subjects_container)
+        self._subjects_container.setAlignment(Qt.AlignmentFlag.AlignTop)
+        
+        subj_scroll.setWidget(self._subj_content)
+        subjects_layout.addWidget(subj_scroll, stretch=1)
 
-        add_subject_btn = QPushButton("+ Add Subject")
+        add_subj_row = QHBoxLayout()
+        add_subject_btn = QPushButton("+   Add New Subject")
+        add_subject_btn.setProperty("class", "secondary")
         add_subject_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         add_subject_btn.clicked.connect(self._add_subject)
-        self._subjects_section.add_widget(add_subject_btn)
+        add_subj_row.addWidget(add_subject_btn)
+        add_subj_row.addStretch()
+        subjects_layout.addLayout(add_subj_row)
 
-        layout.addWidget(self._subjects_section)
+        self._stacked_widget.addWidget(self._page_subjects)
 
-        # ========== D-Day Events (Collapsible) ==========
-        self._dday_section = CollapsibleSection("D-Day Events")
+        # ------ Page 1: D-Day Events ------
+        self._page_dday = QWidget()
+        dday_layout = QVBoxLayout(self._page_dday)
+        dday_layout.setContentsMargins(0, 0, 0, 0)
+        dday_layout.setSpacing(16)
 
-        self._dday_container = QVBoxLayout()
+        dday_title_lbl = QLabel("📅   D-Day Events")
+        dday_title_lbl.setProperty("class", "subheading")
+        dday_layout.addWidget(dday_title_lbl)
+
+        dday_desc = QLabel("Track upcoming exams, deadlines, or milestones. Your D-Day events are displayed automatically on your dashboard.")
+        dday_desc.setWordWrap(True)
+        dday_desc.setStyleSheet("color: rgba(203, 170, 205, 0.7); font-size: 13px; line-height: 1.4;")
+        dday_layout.addWidget(dday_desc)
+
+        dday_scroll = QScrollArea()
+        dday_scroll.setWidgetResizable(True)
+        dday_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        
+        self._dday_content = QWidget()
+        self._dday_container = QVBoxLayout(self._dday_content)
+        self._dday_container.setContentsMargins(0, 0, 8, 0)
         self._dday_container.setSpacing(8)
-        self._dday_section.add_layout(self._dday_container)
+        self._dday_container.setAlignment(Qt.AlignmentFlag.AlignTop)
+        
+        dday_scroll.setWidget(self._dday_content)
+        dday_layout.addWidget(dday_scroll, stretch=1)
 
-        add_dday_btn = QPushButton("+ Add Event")
+        add_dday_row = QHBoxLayout()
+        add_dday_btn = QPushButton("+   Add New Event")
+        add_dday_btn.setProperty("class", "secondary")
         add_dday_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         add_dday_btn.clicked.connect(self._add_dday)
-        self._dday_section.add_widget(add_dday_btn)
+        add_dday_row.addWidget(add_dday_btn)
+        add_dday_row.addStretch()
+        dday_layout.addLayout(add_dday_row)
 
-        layout.addWidget(self._dday_section)
+        self._stacked_widget.addWidget(self._page_dday)
 
-        # ========== Appearance (Theme) ==========
-        self._theme_section = CollapsibleSection("Appearance (Theme)")
+        # ------ Page 2: Preferences ------
+        self._page_timer = QWidget()
+        timer_layout = QVBoxLayout(self._page_timer)
+        timer_layout.setContentsMargins(0, 0, 0, 0)
+        timer_layout.setSpacing(20)
 
-        self._theme_container = QVBoxLayout()
-        self._theme_container.setSpacing(8)
-        self._theme_section.add_layout(self._theme_container)
+        timer_title_lbl = QLabel("⏰   Timer & Navigation Preferences")
+        timer_title_lbl.setProperty("class", "subheading")
+        timer_layout.addWidget(timer_title_lbl)
 
-        lbl = QLabel("Select Theme:")
-        lbl.setStyleSheet("color: #CBAACD; font-size: 13px; margin-bottom: 4px;")
-        self._theme_container.addWidget(lbl)
+        timer_desc = QLabel("Adjust timer styles and customise which trackers appear on your sidebar navigation menu.")
+        timer_desc.setWordWrap(True)
+        timer_desc.setStyleSheet("color: rgba(203, 170, 205, 0.7); font-size: 13px;")
+        timer_layout.addWidget(timer_desc)
+
+        pref_card = QFrame()
+        pref_card.setProperty("class", "card")
+        pref_card_layout = QVBoxLayout(pref_card)
+        pref_card_layout.setContentsMargins(20, 20, 20, 20)
+        pref_card_layout.setSpacing(14)
+
+        lbl_timer = QLabel("Select Timer Mode:")
+        lbl_timer.setStyleSheet("color: #ECFDF5; font-size: 14px; font-weight: bold;")
+        pref_card_layout.addWidget(lbl_timer)
+
+        self._timer_mode_combo = QComboBox()
+        self._timer_mode_combo.addItem("Start from Zero (Standard)", "start_from_zero")
+        self._timer_mode_combo.addItem("Daily Total Time (Accumulative)", "daily_total")
+        self._timer_mode_combo.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._timer_mode_combo.setFixedHeight(40)
+        self._timer_mode_combo.setStyleSheet("""
+            QComboBox {
+                background: rgba(40, 15, 45, 0.55);
+                border: 1px solid rgba(16, 185, 129, 0.15);
+                border-radius: 8px;
+                padding: 8px 12px;
+                color: #ECFDF5;
+                font-weight: 600;
+            }
+            QComboBox::drop-down { border: none; }
+        """)
+
+        current_timer_style = load_setting("timer_style", "start_from_zero")
+        idx = self._timer_mode_combo.findData(current_timer_style)
+        if idx >= 0:
+            self._timer_mode_combo.setCurrentIndex(idx)
+
+        self._timer_mode_combo.currentIndexChanged.connect(self._on_timer_style_changed)
+        pref_card_layout.addWidget(self._timer_mode_combo)
+
+        lbl_timer_desc = QLabel(
+            "• <b>Start from Zero</b>: The timer resets to 00:00:00 every time you click start, showing the duration of the current session alone.\n\n"
+            "• <b>Daily Total Time</b>: The timer automatically loads the total seconds you studied this subject today. Starting the timer increments directly from your daily accumulated total, so you always see your day's total focus progress."
+        )
+        lbl_timer_desc.setWordWrap(True)
+        lbl_timer_desc.setStyleSheet("color: rgba(203, 170, 205, 0.75); font-size: 12px; line-height: 1.5;")
+        pref_card_layout.addWidget(lbl_timer_desc)
+
+        timer_layout.addWidget(pref_card)
+
+        # Navigation preferences card
+        nav_pref_card = QFrame()
+        nav_pref_card.setProperty("class", "card")
+        nav_pref_card_layout = QVBoxLayout(nav_pref_card)
+        nav_pref_card_layout.setContentsMargins(20, 20, 20, 20)
+        nav_pref_card_layout.setSpacing(14)
+
+        lbl_nav = QLabel("Sidebar Navigation Customization:")
+        lbl_nav.setStyleSheet("color: #FFD6E0; font-size: 14px; font-weight: bold;")
+        nav_pref_card_layout.addWidget(lbl_nav)
+
+        self._show_trackers_checkbox = QCheckBox("Show optional trackers (Syllabus & Test Tracker)")
+        self._show_trackers_checkbox.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._show_trackers_checkbox.setChecked(load_setting("show_optional_trackers", False))
+        self._show_trackers_checkbox.setStyleSheet("""
+            QCheckBox {
+                color: #CBAACD;
+                font-size: 13px;
+            }
+            QCheckBox::indicator {
+                width: 18px;
+                height: 18px;
+            }
+        """)
+        self._show_trackers_checkbox.stateChanged.connect(self._on_show_trackers_changed)
+        nav_pref_card_layout.addWidget(self._show_trackers_checkbox)
+
+        lbl_nav_desc = QLabel(
+            "Toggle this option to show or hide the optional Syllabus Tracker and Test Tracker pages from your primary sidebar menu. Settings is automatically kept at the very bottom."
+        )
+        lbl_nav_desc.setWordWrap(True)
+        lbl_nav_desc.setStyleSheet("color: rgba(203, 170, 205, 0.75); font-size: 12px; line-height: 1.5;")
+        nav_pref_card_layout.addWidget(lbl_nav_desc)
+
+        timer_layout.addWidget(nav_pref_card)
+        timer_layout.addStretch()
+
+        self._stacked_widget.addWidget(self._page_timer)
+
+        # ------ Page 3: Visuals & Theme ------
+        self._page_appearance = QWidget()
+        appearance_scroll = QScrollArea()
+        appearance_scroll.setWidgetResizable(True)
+        appearance_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        
+        appearance_content = QWidget()
+        appearance_layout = QVBoxLayout(appearance_content)
+        appearance_layout.setContentsMargins(0, 0, 8, 0)
+        appearance_layout.setSpacing(20)
+
+        app_title_lbl = QLabel("🎨   Visuals & Theme")
+        app_title_lbl.setProperty("class", "subheading")
+        appearance_layout.addWidget(app_title_lbl)
+
+        # Accent Theme Card
+        theme_card = QFrame()
+        theme_card.setProperty("class", "card")
+        theme_card_layout = QVBoxLayout(theme_card)
+        theme_card_layout.setContentsMargins(20, 20, 20, 20)
+        theme_card_layout.setSpacing(14)
+
+        theme_lbl = QLabel("Select Accent Theme:")
+        theme_lbl.setStyleSheet("color: #ECFDF5; font-size: 14px; font-weight: bold;")
+        theme_card_layout.addWidget(theme_lbl)
 
         from app.core.theme_manager import THEMES
         from PySide6.QtWidgets import QGridLayout
@@ -207,12 +434,13 @@ class SettingsPage(QWidget):
             
             accent = t_colors["accent"]
             is_active = (t_name == current_theme)
-            border_color = accent if is_active else "#5A3A5E"
+            border_color = accent if is_active else "#065F46"
+            border_width = "2px" if is_active else "1px"
             
             btn.setStyleSheet(f"""
                 QPushButton {{
-                    background-color: #3E2740;
-                    border: 2px solid {border_color};
+                    background-color: rgba(30, 10, 35, 0.45);
+                    border: {border_width} solid {border_color};
                     border-radius: 10px;
                     color: {accent};
                     font-weight: 600;
@@ -222,11 +450,10 @@ class SettingsPage(QWidget):
                 }}
                 QPushButton:hover {{
                     border-color: {accent};
-                    background-color: #313339;
+                    background-color: rgba(16, 185, 129, 0.08);
                 }}
             """)
             
-            # Use default parameter binding for lambda to capture current loop value
             btn.clicked.connect(lambda checked=False, theme=t_name: self._change_theme(theme))
             self._theme_buttons[t_name] = btn
             grid.addWidget(btn, row, col)
@@ -235,282 +462,288 @@ class SettingsPage(QWidget):
             if col > 1:
                 col = 0
                 row += 1
-                
-        self._theme_container.addLayout(grid)
 
-        layout.addWidget(self._theme_section)
+        theme_card_layout.addLayout(grid)
+        appearance_layout.addWidget(theme_card)
 
-        # ========== Timer Settings (Collapsible) ==========
-        self._timer_pref_section = CollapsibleSection("Timer Settings")
-        self._timer_pref_container = QVBoxLayout()
-        self._timer_pref_container.setSpacing(12)
-        self._timer_pref_section.add_layout(self._timer_pref_container)
-
-        lbl_timer = QLabel("Select Timer Mode:")
-        lbl_timer.setStyleSheet("color: #CBAACD; font-size: 13px; margin-bottom: 4px;")
-        self._timer_pref_container.addWidget(lbl_timer)
-
-        self._timer_mode_combo = QComboBox()
-        self._timer_mode_combo.addItem("Start from Zero (Standard)", "start_from_zero")
-        self._timer_mode_combo.addItem("Daily Total Time (Accumulative)", "daily_total")
-        self._timer_mode_combo.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._timer_mode_combo.setFixedHeight(40)
-        self._timer_mode_combo.setStyleSheet("""
-            QComboBox {
-                background: rgba(40, 15, 45, 0.55);
-                border: 1px solid rgba(90, 58, 94, 0.6);
-                border-radius: 8px;
-                padding: 8px 12px;
-                color: #FFD6E0;
-                font-weight: 600;
-            }
-            QComboBox::drop-down {
-                border: none;
-            }
-        """)
-
-        # Load saved setting and select in combobox
-        current_timer_style = load_setting("timer_style", "start_from_zero")
-        idx = self._timer_mode_combo.findData(current_timer_style)
-        if idx >= 0:
-            self._timer_mode_combo.setCurrentIndex(idx)
-
-        self._timer_mode_combo.currentIndexChanged.connect(self._on_timer_style_changed)
-        self._timer_pref_container.addWidget(self._timer_mode_combo)
-
-        lbl_timer_desc = QLabel(
-            "• Start from Zero: Timer starts at 00:00:00 for each new session.\n"
-            "• Daily Total Time: Timer starts at the total time you studied this subject today and accumulates."
-        )
-        lbl_timer_desc.setWordWrap(True)
-        lbl_timer_desc.setStyleSheet("color: rgba(203, 170, 205, 0.7); font-size: 11px; line-height: 1.4;")
-        self._timer_pref_container.addWidget(lbl_timer_desc)
-
-        layout.addWidget(self._timer_pref_section)
-
-        # ========== Background Image (Collapsible) ==========
-        self._bg_section = CollapsibleSection("Background Image")
-        self._bg_container = QVBoxLayout()
-        self._bg_container.setSpacing(12)
-        self._bg_section.add_layout(self._bg_container)
+        # Custom Background Image Card
+        bg_card = QFrame()
+        bg_card.setProperty("class", "card")
+        self._bg_container = QVBoxLayout(bg_card)
+        self._bg_container.setSpacing(14)
+        
+        bg_header = QLabel("🖼️   Custom Background Image")
+        bg_header.setStyleSheet("font-weight: bold; font-size: 14px; color: #ECFDF5;")
+        self._bg_container.addWidget(bg_header)
+        
+        from app.core import background_manager as bm
         self._build_bg_ui()
-        layout.addWidget(self._bg_section)
+        appearance_layout.addWidget(bg_card)
 
-        # ========== Data Management (Compact) ==========
-        data_frame = QFrame()
-        data_frame.setProperty("class", "card")
-        data_layout = QVBoxLayout(data_frame)
-        data_layout.setContentsMargins(16, 12, 16, 12)
-        data_layout.setSpacing(8)
+        appearance_scroll.setWidget(appearance_content)
+        
+        appearance_layout_outer = QVBoxLayout(self._page_appearance)
+        appearance_layout_outer.setContentsMargins(0, 0, 0, 0)
+        appearance_layout_outer.addWidget(appearance_scroll)
 
-        data_header = QLabel("📦 Data")
-        data_header.setStyleSheet("font-weight: bold; font-size: 14px; color: #FFD6E0;")
-        data_layout.addWidget(data_header)
+        self._stacked_widget.addWidget(self._page_appearance)
 
-        db_info = QLabel(f"Database: {DB_PATH}")
-        db_info.setProperty("class", "caption")
+        # ------ Page 4: System & Data ------
+        self._page_data = QWidget()
+        data_scroll = QScrollArea()
+        data_scroll.setWidgetResizable(True)
+        data_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        
+        data_content = QWidget()
+        data_layout = QVBoxLayout(data_content)
+        data_layout.setContentsMargins(0, 0, 8, 0)
+        data_layout.setSpacing(20)
+
+        data_title_lbl = QLabel("📦   System & Data")
+        data_title_lbl.setProperty("class", "subheading")
+        data_layout.addWidget(data_title_lbl)
+
+        # Database utilities card
+        db_card = QFrame()
+        db_card.setProperty("class", "card")
+        db_card_layout = QVBoxLayout(db_card)
+        db_card_layout.setContentsMargins(20, 20, 20, 20)
+        db_card_layout.setSpacing(12)
+
+        db_header = QLabel("Database Settings")
+        db_header.setStyleSheet("font-weight: bold; font-size: 14px; color: #ECFDF5;")
+        db_card_layout.addWidget(db_header)
+
+        db_info = QLabel(f"<b>Path:</b> {DB_PATH}")
+        db_info.setStyleSheet("color: rgba(203, 170, 205, 0.85); font-size: 12px;")
         db_info.setWordWrap(True)
-        data_layout.addWidget(db_info)
+        db_card_layout.addWidget(db_info)
 
         data_btns = QHBoxLayout()
-        data_btns.setSpacing(8)
+        data_btns.setSpacing(10)
 
-        export_btn = QPushButton("📥 Export CSV")
+        export_btn = QPushButton("📥   Export Study Log (.csv)")
         export_btn.setProperty("class", "secondary")
         export_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         export_btn.clicked.connect(self._export_csv)
         data_btns.addWidget(export_btn)
 
-        reset_btn = QPushButton("🗑️ Reset")
+        reset_btn = QPushButton("🗑️   Reset All Data")
         reset_btn.setProperty("class", "danger-btn")
         reset_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         reset_btn.clicked.connect(self._reset_data)
         data_btns.addWidget(reset_btn)
 
         data_btns.addStretch()
-        data_layout.addLayout(data_btns)
+        db_card_layout.addLayout(data_btns)
+        data_layout.addWidget(db_card)
 
-        layout.addWidget(data_frame)
+        # About card
+        about_card = QFrame()
+        about_card.setProperty("class", "card")
+        about_card_layout = QVBoxLayout(about_card)
+        about_card_layout.setContentsMargins(20, 20, 20, 20)
+        about_card_layout.setSpacing(12)
 
-        # ========== About & Update (Compact) ==========
-        about_frame = QFrame()
-        about_frame.setProperty("class", "card")
-        about_layout = QVBoxLayout(about_frame)
-        about_layout.setContentsMargins(16, 12, 16, 12)
-        about_layout.setSpacing(8)
+        about_header = QLabel(f"About Cygnus — v{CURRENT_VERSION}")
+        about_header.setStyleSheet("font-weight: bold; font-size: 14px; color: #ECFDF5;")
+        about_card_layout.addWidget(about_header)
 
-        about_header = QLabel(f"About — v{CURRENT_VERSION}")
-        about_header.setStyleSheet("font-weight: bold; font-size: 14px; color: #FFD6E0;")
-        about_layout.addWidget(about_header)
+        about_desc = QLabel("Cygnus is a premium, glassmorphic Yeolpumta-inspired focus timer designed to optimize study tracking. Built with high-fidelity visuals, robust database logging, and responsive local charts.")
+        about_desc.setWordWrap(True)
+        about_desc.setStyleSheet("color: rgba(203, 170, 205, 0.8); font-size: 12px; line-height: 1.5;")
+        about_card_layout.addWidget(about_desc)
 
-        about = QLabel("Cygnus — A Yeolpumta-inspired study timer.\nBuilt with Python, PySide6, and SQLModel.")
-        about.setProperty("class", "muted")
-        about_layout.addWidget(about)
-
-        # Update check feature completely removed
-
-        # Contact & Feedback buttons
         feedback_row = QHBoxLayout()
-        feedback_row.setSpacing(8)
+        feedback_row.setSpacing(10)
 
-        contact_btn = QPushButton("📧 Contact Us")
+        contact_btn = QPushButton("📧   Contact Support")
         contact_btn.setProperty("class", "secondary")
         contact_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         contact_btn.clicked.connect(self._open_contact)
         feedback_row.addWidget(contact_btn)
 
-        report_btn = QPushButton("🐛 Send Feedback")
+        report_btn = QPushButton("💬   Send Feedback")
         report_btn.setProperty("class", "secondary")
         report_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         report_btn.clicked.connect(self._open_report)
         feedback_row.addWidget(report_btn)
 
         feedback_row.addStretch()
-        about_layout.addLayout(feedback_row)
+        about_card_layout.addLayout(feedback_row)
+        data_layout.addWidget(about_card)
 
-        layout.addWidget(about_frame)
+        data_scroll.setWidget(data_content)
+        
+        data_layout_outer = QVBoxLayout(self._page_data)
+        data_layout_outer.setContentsMargins(0, 0, 0, 0)
+        data_layout_outer.addWidget(data_scroll)
 
-        layout.addStretch()
+        self._stacked_widget.addWidget(self._page_data)
 
-        scroll.setWidget(content)
-        splitter.addWidget(scroll)
+        # ------ Page 5: Usage Guide ------
+        self._page_guide = QWidget()
+        guide_scroll = QScrollArea()
+        guide_scroll.setWidgetResizable(True)
+        guide_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        
+        guide_content = QWidget()
+        guide_layout = QVBoxLayout(guide_content)
+        guide_layout.setContentsMargins(0, 0, 8, 0)
+        guide_layout.setSpacing(20)
 
-        # ========== RIGHT PANEL: Notice Board Sidebar ==========
-        self._notice_sidebar = QWidget()
-        self._notice_sidebar.setMinimumWidth(300)
-        self._notice_sidebar.setMaximumWidth(400)
-        notice_layout = QVBoxLayout(self._notice_sidebar)
-        notice_layout.setContentsMargins(0, 0, 0, 0)
-        notice_layout.setSpacing(8)
+        guide_title_lbl = QLabel("📖   Usage & Focus Guide")
+        guide_title_lbl.setProperty("class", "subheading")
+        guide_layout.addWidget(guide_title_lbl)
 
-        # Sidebar header with toggle button
-        header = QHBoxLayout()
-        header.setContentsMargins(8, 0, 8, 0)
-
-        notice_title = QLabel("📋 Update Notices")
-        notice_title.setProperty("class", "subheading")
-        header.addWidget(notice_title)
-        header.addStretch()
-
-        # Collapse/expand button
-        self._toggle_btn = QPushButton("→")
-        self._toggle_btn.setFixedSize(28, 28)
-        self._toggle_btn.setProperty("class", "icon-btn")
-        self._toggle_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._toggle_btn.setToolTip("Collapse notice board")
-        self._toggle_btn.clicked.connect(self._toggle_notice_sidebar)
-        header.addWidget(self._toggle_btn)
-
-        notice_layout.addLayout(header)
-
-        # Notice content scroll area
-        notice_scroll = QScrollArea()
-        notice_scroll.setWidgetResizable(True)
-        notice_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-
-        notice_content = QWidget()
-        notice_content_layout = QVBoxLayout(notice_content)
-        notice_content_layout.setContentsMargins(12, 0, 12, 12)
-        notice_content_layout.setSpacing(12)
-        notice_content_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-
-        # Notice cards
-        self._add_notice_card(
-            notice_content_layout,
-            "� v2.1.0 Released",
-            "Cygnus v2.1.0 is now available! This update includes bug fixes and improvements. Check the About section below for details on how to update."
+        # Introduction card
+        intro_card = QFrame()
+        intro_card.setProperty("class", "card")
+        intro_card_layout = QVBoxLayout(intro_card)
+        intro_card_layout.setContentsMargins(20, 20, 20, 20)
+        intro_card_layout.setSpacing(10)
+        
+        intro_header = QLabel("Welcome to Cygnus")
+        intro_header.setStyleSheet("font-weight: bold; font-size: 15px; color: #ECFDF5;")
+        intro_card_layout.addWidget(intro_header)
+        
+        intro_text = QLabel(
+            "Cygnus is a premium focus dashboard and stopwatch environment tailored to optimize study tracking, visual flow, and syllabus management. Follow the sections below to get the most out of your focus sessions."
         )
+        intro_text.setWordWrap(True)
+        intro_text.setStyleSheet("color: rgba(203, 170, 205, 0.85); font-size: 13px; line-height: 1.5;")
+        intro_card_layout.addWidget(intro_text)
+        guide_layout.addWidget(intro_card)
 
-        self._add_notice_card(
-            notice_content_layout,
-            "� Report Image UI Fixed",
-            "The report image generation interface has been improved and is now working correctly."
+        # Section 1: Focus Timer card
+        timer_guide_card = QFrame()
+        timer_guide_card.setProperty("class", "card")
+        timer_guide_card_layout = QVBoxLayout(timer_guide_card)
+        timer_guide_card_layout.setContentsMargins(20, 20, 20, 20)
+        timer_guide_card_layout.setSpacing(10)
+
+        tg_header = QLabel("⏱️   Focus Timer & Modes")
+        tg_header.setStyleSheet("font-weight: bold; font-size: 14px; color: #ECFDF5;")
+        timer_guide_card_layout.addWidget(tg_header)
+
+        tg_text = QLabel(
+            "1. <b>Create Subjects First</b>: Go to the 'Subjects' tab in Settings to add all the academic subjects or tasks you want to track.\n\n"
+            "2. <b>Select and Start</b>: In the main Timer view, pick your active subject card and press Start to trigger the stopwatch.\n\n"
+            "3. <b>Timer Styles</b>:\n"
+            "   • <i>Start from Zero (Standard)</i>: stopwatch begins at 00:00:00 every time you launch focus.\n"
+            "   • <i>Daily Total Time (Accumulative)</i>: stopwatch preloads your day's total focus time and adds your session duration on top of it automatically."
         )
+        tg_text.setWordWrap(True)
+        tg_text.setStyleSheet("color: rgba(203, 170, 205, 0.85); font-size: 12px; line-height: 1.5;")
+        timer_guide_card_layout.addWidget(tg_text)
+        guide_layout.addWidget(timer_guide_card)
 
-        self._add_notice_card(
-            notice_content_layout,
-            "� Check for Updates",
-            "The update feature has been enhanced for better reliability. You can check for updates from the About section below."
+        # Section 2: Custom Layouts & Aesthetics card
+        aes_guide_card = QFrame()
+        aes_guide_card.setProperty("class", "card")
+        aes_guide_card_layout = QVBoxLayout(aes_guide_card)
+        aes_guide_card_layout.setContentsMargins(20, 20, 20, 20)
+        aes_guide_card_layout.setSpacing(10)
+
+        ag_header = QLabel("🎨   Visuals & Glassmorphism")
+        ag_header.setStyleSheet("font-weight: bold; font-size: 14px; color: #ECFDF5;")
+        aes_guide_card_layout.addWidget(ag_header)
+
+        ag_text = QLabel(
+            "1. <b>Custom Backgrounds</b>: Choose high-definition wallpapers from 'Visuals & Theme' to act as your custom glass backing.\n\n"
+            "2. <b>Image Customizations</b>: Adjust background Gaussian Blur intensity and overlay brightness in real-time to maximize font contrast and maintain reading flow.\n\n"
+            "3. <b>Accent Themes</b>: Shift accent colors instantly (Amber, Emerald, Rosy, etc.) to match your mood and aesthetic preference."
         )
+        ag_text.setWordWrap(True)
+        ag_text.setStyleSheet("color: rgba(203, 170, 205, 0.85); font-size: 12px; line-height: 1.5;")
+        aes_guide_card_layout.addWidget(ag_text)
+        guide_layout.addWidget(aes_guide_card)
 
-        self._add_notice_card(
-            notice_content_layout,
-            "💬 Send Feedback",
-            "If you encounter any problems, use the report section to send bug reports and suggestions directly to us."
+        # Section 3: Keyboard & Data card
+        sys_guide_card = QFrame()
+        sys_guide_card.setProperty("class", "card")
+        sys_guide_card_layout = QVBoxLayout(sys_guide_card)
+        sys_guide_card_layout.setContentsMargins(20, 20, 20, 20)
+        sys_guide_card_layout.setSpacing(10)
+
+        sg_header = QLabel("📦   Data Security & Backups")
+        sg_header.setStyleSheet("font-weight: bold; font-size: 14px; color: #ECFDF5;")
+        sys_guide_card_layout.addWidget(sg_header)
+
+        sg_text = QLabel(
+            "1. <b>Automated Storage</b>: Every single study session is logged locally inside an SQLite database to ensure offline stability.\n\n"
+            "2. <b>Logs Export</b>: Use the '📥 Export Study Log' button under System settings to extract your study sessions into `.csv` spreadsheets for Excel/Sheets analysis.\n\n"
+            "3. <b>Reset All Data</b>: Permanently wipe logs, tasks, profile pictures, and event deadlines when starting a new academic year."
         )
+        sg_text.setWordWrap(True)
+        sg_text.setStyleSheet("color: rgba(203, 170, 205, 0.85); font-size: 12px; line-height: 1.5;")
+        sys_guide_card_layout.addWidget(sg_text)
+        guide_layout.addWidget(sys_guide_card)
 
+        guide_scroll.setWidget(guide_content)
+        
+        guide_layout_outer = QVBoxLayout(self._page_guide)
+        guide_layout_outer.setContentsMargins(0, 0, 0, 0)
+        guide_layout_outer.addWidget(guide_scroll)
 
-        notice_content_layout.addStretch()
-        notice_scroll.setWidget(notice_content)
-        notice_layout.addWidget(notice_scroll)
+        self._stacked_widget.addWidget(self._page_guide)
 
-        splitter.addWidget(self._notice_sidebar)
-        splitter.setSizes([700, 300])
+        splitter.addWidget(self._stacked_card)
+        splitter.setSizes([220, 780])
+        splitter.setCollapsible(0, False)
         splitter.setCollapsible(1, False)
 
         content_layout.addWidget(splitter, stretch=1)
 
-        # Collapsed state button (shown when sidebar is hidden)
-        self._expand_btn = QPushButton("←")
-        self._expand_btn.setFixedSize(32, 32)
-        self._expand_btn.setProperty("class", "icon-btn")
-        self._expand_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._expand_btn.setToolTip("Show notice board")
-        self._expand_btn.clicked.connect(self._toggle_notice_sidebar)
-        self._expand_btn.hide()
-        content_layout.addWidget(self._expand_btn, alignment=Qt.AlignmentFlag.AlignTop)
-
         outer_layout.addWidget(content_widget, stretch=1)
 
-    def _add_notice_card(self, layout, title: str, content: str):
-        """Add a notice card to the notice board."""
-        # Clean up or ignore update-related notices
-        if "update" in title.lower() or "update" in content.lower():
-            if "v2.1.0" not in title:  # Keep the main release notice but re-word it
-                return
+        # Default sub-page is Subjects (Page 0)
+        self._switch_sub_page(0)
 
-        # Re-word release notices to remove manual update instructions
-        if "v2.1.0" in title:
-            title = "🎉 v2.1.0 Released"
-            content = "Cygnus v2.1.0 is now available! This update includes bug fixes and performance improvements."
-        elif "Report Image" in title:
-            title = "🖼️ Report Image UI Fixed"
+    def _switch_sub_page(self, index: int):
+        self._stacked_widget.setCurrentIndex(index)
+        self._update_nav_styles(index)
 
-        # Clean up any residual unicode replacement chars
-        title = title.replace("\ufffd", "").replace("", "").strip()
+    def _update_nav_styles(self, active_idx: int):
+        for idx, btn in enumerate(self._nav_buttons):
+            is_active = (idx == active_idx)
+            btn.setChecked(is_active)
+            
+            # Active vs inactive styling
+            if is_active:
+                btn.setStyleSheet("""
+                    QPushButton {
+                        text-align: left;
+                        padding-left: 18px;
+                        background: rgba(16, 185, 129, 0.22);
+                        color: #FFFFFF;
+                        font-weight: bold;
+                        border-left: 3px solid #10B981;
+                        border-top-left-radius: 0px;
+                        border-bottom-left-radius: 0px;
+                        border-top-right-radius: 8px;
+                        border-bottom-right-radius: 8px;
+                        border-top: none; border-right: none; border-bottom: none;
+                    }
+                """)
+            else:
+                btn.setStyleSheet("""
+                    QPushButton {
+                        text-align: left;
+                        padding-left: 18px;
+                        background: transparent;
+                        color: rgba(203, 170, 205, 0.8);
+                        font-weight: 500;
+                        border: none;
+                        border-radius: 8px;
+                    }
+                    QPushButton:hover {
+                        background: rgba(16, 185, 129, 0.08);
+                        color: #10B981;
+                    }
+                """)
 
-        card = QFrame()
-        card.setProperty("class", "card")
-        card.setStyleSheet("""
-            QFrame {
-                background-color: #3E2740;
-                border-radius: 8px;
-                border-left: 3px solid #6C5CE7;
-            }
-        """)
-        card_layout = QVBoxLayout(card)
-        card_layout.setContentsMargins(12, 10, 12, 10)
-        card_layout.setSpacing(6)
 
-        title_lbl = QLabel(title)
-        title_lbl.setStyleSheet("font-weight: bold; font-size: 13px; color: #FFD6E0;")
-        card_layout.addWidget(title_lbl)
-
-        content_lbl = QLabel(content)
-        content_lbl.setStyleSheet("font-size: 12px; color: #A6ACCD; line-height: 1.4;")
-        content_lbl.setWordWrap(True)
-        card_layout.addWidget(content_lbl)
-
-        layout.addWidget(card)
-
-    def _toggle_notice_sidebar(self):
-        """Toggle notice sidebar visibility."""
-        if self._notice_sidebar.isVisible():
-            self._notice_sidebar.hide()
-            self._expand_btn.show()
-        else:
-            self._notice_sidebar.show()
-            self._expand_btn.hide()
 
     def _section_label(self, text: str) -> QLabel:
         label = QLabel(text)
@@ -685,10 +918,10 @@ class SettingsPage(QWidget):
         self._bg_preview.setFixedSize(320, 160)
         self._bg_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._bg_preview.setStyleSheet("""
-            border: 2px dashed #5A3A5E;
+            border: 2px dashed #065F46;
             border-radius: 12px;
             background-color: rgba(42, 44, 49, 0.5);
-            color: #CBAACD;
+            color: #6EE7B7;
             font-size: 13px;
         """)
         self._bg_preview.setText("No background image set.\nClick 'Choose Image' to browse.")
@@ -713,10 +946,10 @@ class SettingsPage(QWidget):
 
         # Blur slider
         blur_lbl_row = QHBoxLayout()
-        blur_lbl = QLabel("Blur Intensity")
-        blur_lbl.setStyleSheet("color: #CBAACD; font-size: 13px;")
+        blur_lbl = QLabel("Gaussian Blur Intensity")
+        blur_lbl.setStyleSheet("color: #6EE7B7; font-size: 13px;")
         self._blur_val_lbl = QLabel(f"{bm.get_blur_radius()}")
-        self._blur_val_lbl.setStyleSheet("color: #FFD6E0; font-size: 13px; font-weight: 600; min-width: 28px;")
+        self._blur_val_lbl.setStyleSheet("color: #ECFDF5; font-size: 13px; font-weight: 600; min-width: 28px;")
         blur_lbl_row.addWidget(blur_lbl)
         blur_lbl_row.addStretch()
         blur_lbl_row.addWidget(self._blur_val_lbl)
@@ -729,11 +962,11 @@ class SettingsPage(QWidget):
         self._blur_slider.setStyleSheet("""
             QSlider::groove:horizontal {
                 height: 6px;
-                background: #5A3A5E;
+                background: #065F46;
                 border-radius: 3px;
             }
             QSlider::handle:horizontal {
-                background: #FF758F;
+                background: #10B981;
                 border: none;
                 width: 18px;
                 height: 18px;
@@ -741,7 +974,7 @@ class SettingsPage(QWidget):
                 border-radius: 9px;
             }
             QSlider::sub-page:horizontal {
-                background: #FF758F;
+                background: #10B981;
                 border-radius: 3px;
             }
         """)
@@ -751,10 +984,10 @@ class SettingsPage(QWidget):
         # Brightness / overlay opacity slider
         op_lbl_row = QHBoxLayout()
         op_lbl = QLabel("Image Brightness")
-        op_lbl.setStyleSheet("color: #CBAACD; font-size: 13px;")
+        op_lbl.setStyleSheet("color: #6EE7B7; font-size: 13px;")
         opacity_pct = int(bm.get_opacity() * 100)
         self._op_val_lbl = QLabel(f"{opacity_pct}%")
-        self._op_val_lbl.setStyleSheet("color: #FFD6E0; font-size: 13px; font-weight: 600; min-width: 36px;")
+        self._op_val_lbl.setStyleSheet("color: #ECFDF5; font-size: 13px; font-weight: 600; min-width: 36px;")
         op_lbl_row.addWidget(op_lbl)
         op_lbl_row.addStretch()
         op_lbl_row.addWidget(self._op_val_lbl)
@@ -838,6 +1071,19 @@ class SettingsPage(QWidget):
         mode = self._timer_mode_combo.itemData(index)
         save_setting("timer_style", mode)
 
+    def _on_show_trackers_changed(self, state):
+        """Save preference and trigger sidebar reload."""
+        is_checked = (state == 2)  # Qt.CheckState.Checked is 2
+        save_setting("show_optional_trackers", is_checked)
+        
+        # Trigger dynamic sidebar reloading if sidebar is accessible via MainWindow parent
+        parent = self.parent()
+        while parent is not None:
+            if hasattr(parent, "sidebar") and hasattr(parent.sidebar, "reload_sidebar"):
+                parent.sidebar.reload_sidebar()
+                break
+            parent = parent.parent()
+
     # ---------- Appearance / Theme ----------
     def _change_theme(self, theme_name: str):
         from app.core.theme_manager import apply_theme, THEMES
@@ -852,12 +1098,13 @@ class SettingsPage(QWidget):
             t_colors = THEMES[name]
             accent = t_colors["accent"]
             is_active = (name == theme_name)
-            border_color = accent if is_active else "#5A3A5E"
+            border_color = accent if is_active else "#065F46"
+            border_width = "2px" if is_active else "1px"
             
             btn.setStyleSheet(f"""
                 QPushButton {{
-                    background-color: #3E2740;
-                    border: 2px solid {border_color};
+                    background-color: rgba(30, 10, 35, 0.45);
+                    border: {border_width} solid {border_color};
                     border-radius: 10px;
                     color: {accent};
                     font-weight: 600;
@@ -867,7 +1114,7 @@ class SettingsPage(QWidget):
                 }}
                 QPushButton:hover {{
                     border-color: {accent};
-                    background-color: #313339;
+                    background-color: rgba(16, 185, 129, 0.08);
                 }}
             """)
             

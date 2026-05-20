@@ -7,6 +7,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QFrame, QVBoxLayout, QPushButton, QWidget, QSpacerItem, QSizePolicy, QLabel, QHBoxLayout
 
 from app.core.utils import CURRENT_VERSION
+from app.data.settings_store import load_setting
 
 
 class Sidebar(QWidget):
@@ -15,22 +16,17 @@ class Sidebar(QWidget):
     page_changed = Signal(int)
     profile_clicked = Signal()
 
-    # Icon files for each page (stored in assets/icons/)
-    PAGES = [
-        ("home.ico", "Dashboard"),
-        ("time.ico", "Time Tracker"),
-        ("task.ico", "Task Tracker"),
-        ("syllabus.ico", "Syllabus"),
-        ("test.ico", "Test Tracker"),
-        ("setting.ico", "Settings"),
-    ]
-
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("sidebar")
         self.setFixedWidth(64)
         self._buttons: list[QPushButton] = []
+        self._page_indices: list[int] = []
         self._active_index = 0
+        
+        # Read trackers visibility
+        self.show_trackers = load_setting("show_optional_trackers", False)
+        
         self._setup_ui()
 
     def _setup_ui(self):
@@ -86,8 +82,19 @@ class Sidebar(QWidget):
         nav_layout.setContentsMargins(8, 12, 8, 16)
         nav_layout.setSpacing(12)
 
-        # Navigation buttons
-        for i, (icon_file, tooltip) in enumerate(self.PAGES):
+        # Navigation buttons mapping (icon_file, tooltip, page_idx, emoji_fallback)
+        top_pages = [
+            ("home.ico", "Dashboard", 0, "🏠"),
+            ("time.ico", "Time Tracker", 1, "⏱️"),
+            ("task.ico", "Task Tracker", 2, "✅"),
+        ]
+        
+        if self.show_trackers:
+            top_pages.append(("syllabus.ico", "Syllabus", 3, "📚"))
+            top_pages.append(("test.ico", "Test Tracker", 4, "📝"))
+
+        # Create Top Navigation buttons
+        for icon_file, tooltip, page_idx, emoji in top_pages:
             btn = QPushButton()
             btn.setProperty("class", "sidebar-btn")
             btn.setToolTip(tooltip)
@@ -100,19 +107,39 @@ class Sidebar(QWidget):
                 btn.setIconSize(QSize(32, 32))
                 btn.setStyleSheet("QPushButton { border: none; background: transparent; text-align: center; padding: 0px; }")
             else:
-                # Fallback to emoji if icon file missing
-                emoji_fallback = ["🏠", "⏱️", "✅", "📖", "⚙️"][i]
-                btn.setText(emoji_fallback)
+                btn.setText(emoji)
                 btn.setStyleSheet("QPushButton { font-size: 24px; border: none; background: transparent; text-align: center; padding: 0px; }")
 
-            btn.clicked.connect(lambda checked, idx=i: self._on_click(idx))
+            btn.clicked.connect(lambda checked, idx=page_idx: self._on_click(idx))
             nav_layout.addWidget(btn, alignment=Qt.AlignmentFlag.AlignCenter)
             self._buttons.append(btn)
+            self._page_indices.append(page_idx)
 
-        # Push remaining space to bottom
+        # Push remaining space to bottom (retains settings at the absolute bottom!)
         nav_layout.addItem(
             QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         )
+
+        # Create Bottom Navigation button (Settings)
+        settings_btn = QPushButton()
+        settings_btn.setProperty("class", "sidebar-btn")
+        settings_btn.setToolTip("Settings")
+        settings_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        settings_btn.setFixedSize(48, 48)
+
+        icon_path = get_icon_path("setting.ico")
+        if icon_path.exists():
+            settings_btn.setIcon(QIcon(str(icon_path)))
+            settings_btn.setIconSize(QSize(32, 32))
+            settings_btn.setStyleSheet("QPushButton { border: none; background: transparent; text-align: center; padding: 0px; }")
+        else:
+            settings_btn.setText("⚙️")
+            settings_btn.setStyleSheet("QPushButton { font-size: 24px; border: none; background: transparent; text-align: center; padding: 0px; }")
+
+        settings_btn.clicked.connect(lambda checked, idx=5: self._on_click(idx))
+        nav_layout.addWidget(settings_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+        self._buttons.append(settings_btn)
+        self._page_indices.append(5)
 
         # Version label
         version_label = QLabel(f"v{CURRENT_VERSION}")
@@ -129,8 +156,9 @@ class Sidebar(QWidget):
         self.page_changed.emit(index)
 
     def _update_active(self):
-        for i, btn in enumerate(self._buttons):
-            btn.setProperty("active", "true" if i == self._active_index else "false")
+        for btn, page_idx in zip(self._buttons, self._page_indices):
+            is_active = (page_idx == self._active_index)
+            btn.setProperty("active", "true" if is_active else "false")
             btn.style().unpolish(btn)
             btn.style().polish(btn)
 
@@ -138,3 +166,18 @@ class Sidebar(QWidget):
         """Programmatically set the active page."""
         self._active_index = index
         self._update_active()
+
+    def reload_sidebar(self):
+        """Clear layout and rebuild to dynamically toggle trackers."""
+        self.show_trackers = load_setting("show_optional_trackers", False)
+        
+        # Clear buttons tracking list
+        self._buttons.clear()
+        self._page_indices.clear()
+
+        # Safely reparent old layout to a temporary widget to completely wipe the layout and widgets
+        if self.layout() is not None:
+            QWidget().setLayout(self.layout())
+
+        # Re-build layout structure
+        self._setup_ui()

@@ -40,7 +40,7 @@ class ContactDialog(QDialog):
 
         separator = QLabel("============================")
         separator.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        separator.setStyleSheet("color: #CBAACD; font-family: monospace;")
+        separator.setStyleSheet("color: #6EE7B7; font-family: monospace;")
         root.addWidget(separator)
 
         # Subtitle

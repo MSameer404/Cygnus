@@ -201,7 +201,7 @@ class SubjectDialog(QDialog):
                 f"QPushButton {{ background-color: {c}; "
                 f"border: 2px solid transparent; "
                 f"border-radius: 14px; }}"
-                f"QPushButton:hover {{ border-color: #FFD6E0; }}"
+                f"QPushButton:hover {{ border-color: #ECFDF5; }}"
             )
             btn.clicked.connect(lambda checked, col=c: self._set_color(col))
             color_row.addWidget(btn)

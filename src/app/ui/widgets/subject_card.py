@@ -64,7 +64,7 @@ class SubjectCard(QFrame):
             QLabel#subjectCardName {{
                 font-weight: 600;
                 font-size: 14px;
-                color: #FFD6E0;
+                color: #ECFDF5;
                 letter-spacing: 0.3px;
                 background: transparent;
                 border: none;
@@ -74,7 +74,7 @@ class SubjectCard(QFrame):
             }}
             QLabel#subjectCardTime {{
                 font-size: 12px;
-                color: #CBAACD;
+                color: #6EE7B7;
                 font-weight: 500;
                 background: transparent;
                 border: none;

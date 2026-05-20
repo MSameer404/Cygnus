@@ -71,7 +71,7 @@ class WeekReportWidget(QWidget):
 
         # LEFT: Profile Card
         profile_card = QFrame()
-        profile_card.setStyleSheet("background-color: #3E2740; border-radius: 12px;")
+        profile_card.setStyleSheet("background-color: #182820; border-radius: 12px;")
         profile_layout = QHBoxLayout(profile_card)
         profile_layout.setContentsMargins(20, 15, 20, 15)
         profile_layout.setSpacing(15)
@@ -106,7 +106,7 @@ class WeekReportWidget(QWidget):
         profile_info.setSpacing(4)
         
         name_lbl = QLabel(name)
-        name_lbl.setStyleSheet("font-size: 20px; font-weight: bold; color: #FFD6E0;")
+        name_lbl.setStyleSheet("font-size: 20px; font-weight: bold; color: #ECFDF5;")
         profile_info.addWidget(name_lbl)
         
         details = []
@@ -117,7 +117,7 @@ class WeekReportWidget(QWidget):
         
         if details:
             details_lbl = QLabel(" • ".join(details))
-            details_lbl.setStyleSheet("font-size: 14px; color: #CBAACD;")
+            details_lbl.setStyleSheet("font-size: 14px; color: #6EE7B7;")
             profile_info.addWidget(details_lbl)
         
         profile_layout.addLayout(profile_info)
@@ -126,7 +126,7 @@ class WeekReportWidget(QWidget):
 
         # RIGHT: Week Date & Total Time Card
         week_card = QFrame()
-        week_card.setStyleSheet("background-color: #3E2740; border-radius: 12px;")
+        week_card.setStyleSheet("background-color: #182820; border-radius: 12px;")
         week_layout = QVBoxLayout(week_card)
         week_layout.setContentsMargins(20, 15, 20, 15)
         week_layout.setSpacing(8)
@@ -135,7 +135,7 @@ class WeekReportWidget(QWidget):
         # Week Date Range (Header 3 style)
         week_str = f"{self.week_start.strftime('%b %d')} – {self.week_end.strftime('%b %d, %Y')}"
         week_lbl = QLabel(week_str)
-        week_lbl.setStyleSheet("font-size: 18px; color: #CBAACD;")
+        week_lbl.setStyleSheet("font-size: 18px; color: #6EE7B7;")
         week_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         week_layout.addWidget(week_lbl)
 
@@ -154,13 +154,13 @@ class WeekReportWidget(QWidget):
 
         # LEFT: Subject Breakdown
         subjects_card = QFrame()
-        subjects_card.setStyleSheet("background-color: #3E2740; border-radius: 12px;")
+        subjects_card.setStyleSheet("background-color: #182820; border-radius: 12px;")
         subjects_layout = QVBoxLayout(subjects_card)
         subjects_layout.setContentsMargins(20, 20, 20, 20)
         subjects_layout.setSpacing(12)
 
         sub_title = QLabel("Subject Breakdown")
-        sub_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #FFD6E0; margin-bottom: 5px;")
+        sub_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #ECFDF5; margin-bottom: 5px;")
         subjects_layout.addWidget(sub_title)
 
         # Get weekly subject breakdown
@@ -189,7 +189,7 @@ class WeekReportWidget(QWidget):
                     row.addWidget(color_dot)
                     
                     name_lbl = QLabel(str(name))
-                    name_lbl.setStyleSheet("font-size: 15px; color: #FFD6E0;")
+                    name_lbl.setStyleSheet("font-size: 15px; color: #ECFDF5;")
                     row.addWidget(name_lbl, stretch=1)
                     
                     # Subject time - slightly bigger
@@ -203,13 +203,13 @@ class WeekReportWidget(QWidget):
 
         # RIGHT: Daily Study Time Bar Chart
         chart_card = QFrame()
-        chart_card.setStyleSheet("background-color: #3E2740; border-radius: 12px;")
+        chart_card.setStyleSheet("background-color: #182820; border-radius: 12px;")
         chart_layout = QVBoxLayout(chart_card)
         chart_layout.setContentsMargins(20, 20, 20, 20)
         chart_layout.setSpacing(12)
 
         chart_title = QLabel("Daily Study Time")
-        chart_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #FFD6E0; margin-bottom: 5px;")
+        chart_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #ECFDF5; margin-bottom: 5px;")
         chart_layout.addWidget(chart_title)
 
         self._bar_chart = BarChart()

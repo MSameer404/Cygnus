@@ -25,7 +25,7 @@ class PieChart(QWidget):
         if not self._data:
             painter = QPainter(self)
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-            painter.setPen(QPen(QColor("#CBAACD")))
+            painter.setPen(QPen(QColor("#6EE7B7")))
             painter.setFont(QFont("Segoe UI", 12))
             painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, "No data")
             painter.end()
@@ -63,13 +63,13 @@ class PieChart(QWidget):
             painter.fillPath(path, color)
 
             # Draw thin separator
-            painter.setPen(QPen(QColor("#2D1B2E"), 2))
+            painter.setPen(QPen(QColor("#0F1A15"), 2))
             painter.drawPath(path)
 
             start_angle += span
 
         # Center text
-        painter.setPen(QPen(QColor("#FFD6E0")))
+        painter.setPen(QPen(QColor("#ECFDF5")))
         painter.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
         hours = total / 3600
         painter.drawText(
@@ -94,7 +94,7 @@ class PieChart(QWidget):
             painter.drawEllipse(int(legend_x), int(legend_y), 8, 8)
 
             # Label
-            painter.setPen(QPen(QColor("#FFD6E0")))
+            painter.setPen(QPen(QColor("#ECFDF5")))
             pct = (info["seconds"] / total * 100) if total > 0 else 0
             text = f"{name} ({pct:.0f}%)"
             painter.drawText(int(legend_x + 14), int(legend_y + 9), text)

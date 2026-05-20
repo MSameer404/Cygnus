@@ -1,6 +1,8 @@
 {
-  "current_theme": "Flamingo (Rose)",
+  "current_theme": "Serpent (Emerald)",
   "bg_image_enabled": true,
   "bg_image_blur": 0,
-  "bg_image_opacity": 0.6
+  "bg_image_opacity": 0.43,
+  "timer_style": "daily_total",
+  "show_optional_trackers": false
 }

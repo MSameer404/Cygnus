@@ -32,6 +32,7 @@ from app.ui.widgets.html_report_generator import (
 from app.ui.widgets.pie_chart import PieChart
 from app.ui.widgets.snapshot_widget import SnapshotWidget
 from app.ui.widgets.step_chart import StepChart
+from app.ui.widgets.heatmap import HeatmapWidget
 
 
 class StatsPage(QWidget):
@@ -168,6 +169,42 @@ class StatsPage(QWidget):
         charts_row.addWidget(self._chart_frame, stretch=1)
 
         self._layout.addLayout(charts_row)
+
+        # ---------- Heatmap Widget Card (for Yearly tab) ----------
+        self._heatmap_frame = QFrame()
+        self._heatmap_frame.setProperty("class", "card")
+        self._heatmap_layout = QVBoxLayout(self._heatmap_frame)
+        self._heatmap_layout.setContentsMargins(20, 16, 20, 20)
+        self._heatmap_layout.setSpacing(12)
+
+        heatmap_title_row = QHBoxLayout()
+        heatmap_title = QLabel("📅   Yearly Activity Heatmap")
+        heatmap_title.setStyleSheet("font-weight: bold; font-size: 14px; color: #FFD6E0;")
+        heatmap_title_row.addWidget(heatmap_title)
+        heatmap_title_row.addStretch()
+
+        # GitHub style Legend
+        legend_lbl = QLabel("Less")
+        legend_lbl.setStyleSheet("color: rgba(203, 170, 205, 0.6); font-size: 11px;")
+        heatmap_title_row.addWidget(legend_lbl)
+
+        for col_hex in HeatmapWidget.COLORS:
+            color_dot = QFrame()
+            color_dot.setFixedSize(11, 11)
+            color_dot.setStyleSheet(f"background-color: {col_hex}; border-radius: 2px;")
+            heatmap_title_row.addWidget(color_dot)
+
+        legend_lbl2 = QLabel("More")
+        legend_lbl2.setStyleSheet("color: rgba(203, 170, 205, 0.6); font-size: 11px;")
+        heatmap_title_row.addWidget(legend_lbl2)
+
+        self._heatmap_layout.addLayout(heatmap_title_row)
+
+        self._heatmap_widget = HeatmapWidget()
+        self._heatmap_layout.addWidget(self._heatmap_widget)
+
+        self._layout.addWidget(self._heatmap_frame)
+        self._heatmap_frame.hide()
 
         self._layout.addStretch()
 
@@ -410,6 +447,14 @@ class StatsPage(QWidget):
         breakdown = stats_engine.get_subject_breakdown(start, end)
         self._pie_chart.set_data(breakdown)
         self._bar_chart.set_data(bar_values, bar_labels)
+
+        # Heatmap card toggling and refresh
+        if tab == 3:
+            self._heatmap_frame.show()
+            heatmap_data = stats_engine.get_heatmap_data(d.year)
+            self._heatmap_widget.set_data(heatmap_data, d.year)
+        else:
+            self._heatmap_frame.hide()
 
     def _switch_to_step_chart(self):
         """Switch chart display to step chart for Day tab."""

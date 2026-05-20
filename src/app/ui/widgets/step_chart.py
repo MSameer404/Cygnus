@@ -18,9 +18,8 @@ class StepChart(QWidget):
         super().__init__(parent)
         self._sessions: list[dict] = []  # List of dicts with start_time, end_time
         self._line_color = QColor("#6C5CE7")  # Purple accent
-        self._grid_color = QColor("#3E2740")
-        self._text_color = QColor("#CBAACD")
-        self._bg_color = QColor("#1A1A24")
+        self._grid_color = QColor("#182820")
+        self._text_color = QColor("#6EE7B7")
         self.setMinimumHeight(250)
 
     def set_sessions(self, sessions: list[dict]):
@@ -34,9 +33,6 @@ class StepChart(QWidget):
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
-        # Fill background
-        painter.fillRect(self.rect(), self._bg_color)
 
         padding_left = 50
         padding_right = 20
